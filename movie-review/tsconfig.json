@@ -28,7 +28,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "components/CardList.jsx",
-    "components/Navbar.jsx"
+    "components/Navbar.jsx",
+    "public/sw.js"
   ],
   "exclude": ["node_modules"]
 }
