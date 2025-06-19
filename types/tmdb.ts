@@ -154,6 +154,7 @@ export interface MTV {
   release_date: string;
   budget: number;
   revenue: number;
+  genre_ids: any;
 }
 
 export interface MoviesListResponse {
