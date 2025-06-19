@@ -16,14 +16,14 @@ const Navbar = () => {
         <SidebarTrigger />
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbItem className="hidden md:block">
+            <BreadcrumbItem className="hidden lg:block">
               <BreadcrumbLink href="/home">Home</BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="relative">
-        <Search />
+      <div className="relative hidden sm:block">
+        <Search width={96} />
       </div>
     </div>
   );

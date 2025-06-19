@@ -9,7 +9,7 @@ const Home = () => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {data.results.map((movie: any) => (
+      {/* {data.results.map((movie: any) => (
         <div key={movie.id}>
           <img
             src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -17,7 +17,7 @@ const Home = () => {
           />
           <p>{movie.title}</p>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 };

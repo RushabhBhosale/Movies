@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const Search = () => {
+const Search = ({ width }: { width: number }) => {
   const [search, setSearch] = useState<string>("");
   const [movies, setMovies] = useState<MTV[]>([]);
   const [tv, setTv] = useState<MTV[]>([]);
@@ -42,7 +42,7 @@ const Search = () => {
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="relative w-40 h-8 sm:h-10 sm:w-96 bg-gray-50ring-0 bg-[#313036] outline-none border border-neutral-500 text-white placeholder-gray-400 text-sm rounded-lg focus:ring-gray-500  focus:border-gray-500 block focus:px-3 transition-all px-6"
+        className={`relative w-40 h-8 sm:h-10 sm:w-96 bg-gray-50ring-0 bg-[#313036] outline-none border border-neutral-500 text-white placeholder-gray-400 text-sm rounded-lg focus:ring-gray-500  focus:border-gray-500 block focus:px-3 transition-all px-6`}
         placeholder="Search ..."
       />
       <MagnifyingGlassIcon className="lg:w-6 lg:h-6 w-3 h-3 absolute  top-2 right-3" />
