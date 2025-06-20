@@ -1,127 +1,166 @@
-import * as React from "react";
-import { RefreshCcw } from "lucide-react";
+"use client";
 
+import * as React from "react";
+import {
+  AudioWaveform,
+  BookmarkIcon,
+  BookOpen,
+  Bot,
+  Clock,
+  Command,
+  Film,
+  Flame,
+  Frame,
+  GalleryVerticalEnd,
+  Heart,
+  Home,
+  Map,
+  PieChart,
+  Search,
+  Settings2,
+  Shield,
+  SquareTerminal,
+  Star,
+  Tags,
+  User,
+} from "lucide-react";
+
+import { NavMain } from "@/components/nav-main";
+import { NavProjects } from "@/components/nav-projects";
+import { NavUser } from "@/components/nav-user";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
+  SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 
 const data = {
+  user: {
+    name: "rushabh",
+    email: "rushabh@example.com",
+    avatar: "",
+  },
+  teams: [
+    {
+      name: "My Watchlist",
+      logo: BookmarkIcon,
+      plan: "Personal",
+    },
+    {
+      name: "Favorites",
+      logo: Heart,
+      plan: "All-time",
+    },
+    {
+      name: "Watch Later",
+      logo: Clock,
+      plan: "Pending",
+    },
+  ],
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Home",
+      url: "/",
+      icon: Home,
+      isActive: true,
+      items: [],
     },
     {
-      title: "Movies",
-      url: "#",
+      title: "Trending",
+      url: "/trending",
+      icon: Flame,
       items: [
-        { title: "Now Playing", url: "/movies/now-playing" },
-        { title: "Top Rated", url: "/movies/top-rated" },
-        { title: "Genres", url: "/movies/genres" },
+        {
+          title: "Movies",
+          url: "/trending/movie",
+        },
+        {
+          title: "TV Shows",
+          url: "/trending/tv",
+        },
       ],
     },
     {
-      title: "TV Shows",
-      url: "#",
+      title: "Genres",
+      url: "/genres",
+      icon: Tags,
       items: [
-        { title: "Trending", url: "/tv/trending", isActive: true },
-        { title: "K-Dramas", url: "/tv/kdramas" },
-        { title: "Anime", url: "/tv/anime" },
+        {
+          title: "Action",
+          url: "/genres/action",
+        },
+        {
+          title: "Comedy",
+          url: "/genres/comedy",
+        },
+        {
+          title: "Horror",
+          url: "/genres/horror",
+        },
+        {
+          title: "Sci-Fi",
+          url: "/genres/scifi",
+        },
       ],
     },
     {
-      title: "Watchlist",
-      url: "#",
-      items: [
-        { title: "Plan to Watch", url: "/watchlist/plan-to-watch" },
-        { title: "Watching", url: "/watchlist/watching" },
-        { title: "Completed", url: "/watchlist/completed" },
-        { title: "Dropped", url: "/watchlist/dropped" },
-      ],
-    },
-    {
-      title: "Reviews",
-      url: "#",
-      items: [
-        { title: "My Reviews", url: "/reviews/mine" },
-        { title: "All Reviews", url: "/reviews/all" },
-      ],
-    },
-    {
-      title: "Discover",
-      url: "#",
-      items: [
-        { title: "Upcoming", url: "/discover/upcoming" },
-        { title: "Genres", url: "/discover/genres" },
-        { title: "Random Pick", url: "/discover/random" },
-      ],
+      title: "Search",
+      url: "/search",
+      icon: Search,
+      items: [],
     },
     {
       title: "Profile",
-      url: "#",
+      url: "/profile",
+      icon: User,
       items: [
-        { title: "Stats", url: "/profile/stats" },
-        { title: "Settings", url: "/profile/settings" },
+        {
+          title: "My Watchlist",
+          url: "/profile/watchlist",
+        },
+        {
+          title: "Account Settings",
+          url: "/profile/settings",
+        },
       ],
+    },
+  ],
+  projects: [
+    {
+      name: "Marvel Universe",
+      url: "/collections/marvel",
+      icon: Shield,
+    },
+    {
+      name: "Christopher Nolan Films",
+      url: "/collections/nolan",
+      icon: Film,
+    },
+    {
+      name: "Top IMDB Picks",
+      url: "/collections/imdb",
+      icon: Star,
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar variant="floating" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <RefreshCcw className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Show Sync</span>
-                  <span className="">v1.0.0</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader className="mt-2">
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu className="gap-2">
-            {data.navMain.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url} className="font-medium">
-                    {item.title}
-                  </a>
-                </SidebarMenuButton>
-                {item.items?.length ? (
-                  <SidebarMenuSub className="ml-0 border-l-0 px-1.5">
-                    {item.items.map((item) => (
-                      <SidebarMenuSubItem key={item.title}>
-                        <SidebarMenuSubButton asChild isActive={item.isActive}>
-                          <a href={item.url}>{item.title}</a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                ) : null}
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        <NavMain items={data.navMain} />
+        <NavProjects projects={data.projects} />
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={data.user} />
+      </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

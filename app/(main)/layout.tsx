@@ -15,15 +15,19 @@ export default function RootLayout({
       <SidebarProvider
         style={
           {
-            "--sidebar-width": "15rem",
+            "--sidebar-width": "12rem",
           } as React.CSSProperties
         }
       >
-        <AppSidebar />
-        <SidebarInset>
-          <Navbar />
-          {children}
-        </SidebarInset>
+        <div className="flex h-screen overflow-hidden">
+          <AppSidebar />
+          <div className="overflow-auto">
+            <div className="flex w-full py-1 bg-sidebar">
+              <Navbar />
+            </div>
+            <main>{children}</main>
+          </div>
+        </div>
       </SidebarProvider>
     </SessionProvider>
   );

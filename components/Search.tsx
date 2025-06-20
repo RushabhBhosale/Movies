@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const Search = ({ width }: { width: number }) => {
+const Search = () => {
   const [search, setSearch] = useState<string>("");
   const [movies, setMovies] = useState<MTV[]>([]);
   const [tv, setTv] = useState<MTV[]>([]);
@@ -37,24 +37,22 @@ const Search = ({ width }: { width: number }) => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-40">
       <input
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className={`relative w-40 h-8 sm:h-10 sm:w-96 bg-gray-50ring-0 bg-[#313036] outline-none border border-neutral-500 text-white placeholder-gray-400 text-sm rounded-lg focus:ring-gray-500  focus:border-gray-500 block focus:px-3 transition-all px-6`}
+        className={`relative h-9 w-86 bg-gray-50ring-0 bg-[#313036] outline-none border border-neutral-500 text-white placeholder-gray-400 text-sm rounded-lg focus:ring-gray-500  focus:border-gray-500 block focus:px-3 transition-all px-6`}
         placeholder="Search ..."
       />
-      <MagnifyingGlassIcon className="lg:w-6 lg:h-6 w-3 h-3 absolute  top-2 right-3" />
-      <div className={`absolute flex flex-col w-40 sm:w-96`}>
+      <MagnifyingGlassIcon className="size-5 absolute  top-2 right-3" />
+      <div className={`absolute flex flex-col w-40 sm:w-86`}>
         {movies &&
           movies.slice(0, 6).map((movie, index) => (
             <Link
               onClick={handleClick}
               key={index}
-              href={`/detail/${movie?.id}${
-                movie?.title ? `movie${movie?.title}` : `tv${movie?.name}`
-              }`}
+              href={`/${movie?.title ? "movie" : "tv"}/${movie?.id}`}
             >
               <div
                 className={`flex gap-2 px-3 ${
@@ -63,15 +61,16 @@ const Search = ({ width }: { width: number }) => {
               >
                 <div className="w-8 my-2 sm:w-[4.5rem]">
                   <Image
-                    width={70}
+                    width={40}
                     alt="poster"
-                    height={60}
+                    height={30}
                     src={`${imageBaseUrl}/${movie?.poster_path}`}
                   />
                 </div>
-                <div className="sm:py-4 my-2 w-full">
+                <div className="sm:py-1 my-2 w-full">
                   <p className="font-semibold text-[0.6rem] sm:text-base mb-1">
-                    {(movie?.name || movie?.title).slice(0, 36)}
+                    {(movie?.name || movie?.title).slice(0, 30)}
+                    {(movie?.name || movie?.title).length > 30 ? "..." : ""}
                   </p>
                   <div className="justify-between hidden sm:flex">
                     <span className="pe-4">
@@ -82,7 +81,9 @@ const Search = ({ width }: { width: number }) => {
                         : "N/A"}
                     </span>
                     <span className="bg-[#313036] text-white text-xs rounded-sm px-2 py-1 font-semibold">
-                      {movie?.vote_average && movie?.vote_average.toFixed(1)}{" "}
+                      {movie?.vote_average === 0
+                        ? "N/A"
+                        : movie?.vote_average && movie?.vote_average.toFixed(1)}
                     </span>
                   </div>
                 </div>
