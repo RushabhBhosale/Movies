@@ -1,7 +1,7 @@
 "use client";
 import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
-import { MTV, TMDBListResponse } from "@/types/tmdb";
-import { fetchDataFromApi } from "@/utils/api";
+import { useTmdb } from "@/hooks/useTmdb";
+import { MTV } from "@/types/tmdb";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,35 +9,56 @@ import React, { useEffect, useState } from "react";
 
 const Browse = () => {
   const [search, setSearch] = useState<string>("");
-  const [movies, setMovies] = useState<MTV[]>([]);
-  const [tv, setTv] = useState<MTV[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const imageBaseUrl = process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL;
   const isKeyboardVisible = useKeyboardVisible();
 
   useEffect(() => {
-    fetchMovie();
-    fetchTv();
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 500);
+
+    return () => clearTimeout(handler);
   }, [search]);
 
-  const fetchMovie = () => {
-    fetchDataFromApi(`/search/movie?query=${search}`).then(
-      (res: TMDBListResponse) => {
-        setMovies(res.results);
-      }
-    );
-  };
-  const fetchTv = () => {
-    fetchDataFromApi(`/search/tv?query=${search}`).then(
-      (res: TMDBListResponse) => {
-        setTv(res.results);
-      }
-    );
-  };
+  const shouldSearch = debouncedSearch.trim().length > 0;
+
+  const {
+    data: movies,
+    isLoading: moviesLoading,
+    error: moviesError,
+  } = useTmdb(
+    shouldSearch
+      ? `/search/movie?query=${encodeURIComponent(debouncedSearch)}`
+      : ""
+  );
+
+  const {
+    data: tvShows,
+    isLoading: TvShowsLoading,
+    error: tvShowsError,
+  } = useTmdb(
+    shouldSearch
+      ? `/search/tv?query=${encodeURIComponent(debouncedSearch)}`
+      : ""
+  );
+
+  const combinedResults = [...(movies || []), ...(tvShows || [])].sort(
+    (a, b) => (b.popularity || 0) - (a.popularity || 0)
+  );
 
   const handleClick = () => {
     setSearch("");
   };
-  console.log("hjgesdvfes", isKeyboardVisible);
+
+  useEffect(() => {
+    if (moviesError) {
+      console.error("Movies API Error:", moviesError);
+    }
+    if (tvShowsError) {
+      console.error("TV Shows API Error:", tvShowsError);
+    }
+  }, [moviesError, tvShowsError]);
 
   return (
     <div className="p-6 overflow-hidden fixed inset-0 bg-[#121212] z-40">
@@ -49,37 +70,55 @@ const Browse = () => {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={`relative h-8 w-full ring-0 bg-[#313036] outline-none border border-neutral-500 text-white placeholder-gray-400 text-sm rounded-lg focus:ring-gray-500  focus:border-gray-500 block focus:px-3 transition-all px-6`}
-          placeholder="Search anything..."
+          className={`relative h-8 w-full ring-0 bg-[#313036] outline-none border border-neutral-500 text-white placeholder-gray-400 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block focus:px-3 transition-all px-6`}
+          placeholder="Search movies and TV shows..."
         />
-        <MagnifyingGlassIcon className="w-5 h-5 absolute top-[6px] right-3" />
-        {movies.length > 0 && (
-          <div
-            className={`mt-2 flex flex-col w-full ${
-              isKeyboardVisible ? "max-h-[264px]" : "max-h-[530px]"
-            } overflow-y-auto rounded-md bg-[#1a1a1a] border border-neutral-700 z-50 no-scrollbar transition-all duration-300`}
-          >
-            {movies &&
-              movies.slice(0, 10).map((movie, index) => (
+        <MagnifyingGlassIcon className="w-5 h-5 absolute top-[6px] right-3 text-gray-400" />
+
+        {shouldSearch && (moviesLoading || TvShowsLoading) && (
+          <div className="mt-2 p-4 bg-[#1a1a1a] border border-neutral-700 rounded-md">
+            <p className="text-gray-400 text-sm">Searching...</p>
+          </div>
+        )}
+
+        {shouldSearch && (moviesError || tvShowsError) && (
+          <div className="mt-2 p-4 bg-[#1a1a1a] border border-red-700 rounded-md">
+            <p className="text-red-400 text-sm">
+              Error loading results. Please check your API configuration.
+            </p>
+          </div>
+        )}
+
+        {shouldSearch &&
+          combinedResults.length > 0 &&
+          !moviesLoading &&
+          !TvShowsLoading && (
+            <div
+              className={`mt-2 flex flex-col w-full ${
+                isKeyboardVisible ? "max-h-[264px]" : "max-h-[530px]"
+              } overflow-y-auto rounded-md bg-[#1a1a1a] border border-neutral-700 z-50 no-scrollbar transition-all duration-300`}
+            >
+              {combinedResults.slice(0, 10).map((item, index) => (
                 <Link
                   onClick={handleClick}
-                  key={index}
-                  href={`/detail/${movie?.id}${
-                    movie?.title ? `movie${movie?.title}` : `tv${movie?.name}`
+                  key={`${item.id}-${item.title ? "movie" : "tv"}`}
+                  href={`/detail/${item?.id}${
+                    item?.title ? `movie${item?.title}` : `tv${item?.name}`
                   }`}
                 >
                   <div
-                    className={`flex gap-2 px-3 ${
+                    className={`flex gap-2 px-3 hover:bg-[#252525] transition-colors ${
                       index % 2 === 0 ? "bg-[#161616]" : "bg-[#0f1115]"
                     }`}
                   >
-                    <div className="relative w-[40px] my-2 h-[50px]">
-                      {movie?.poster_path ? (
+                    <div className="relative w-[40px] my-2 h-[50px] flex-shrink-0">
+                      {item?.poster_path ? (
                         <Image
                           fill
                           alt="poster"
-                          src={`${imageBaseUrl}/${movie?.poster_path}`}
+                          src={`${imageBaseUrl}/${item?.poster_path}`}
                           className="object-cover object-center rounded"
+                          sizes="40px"
                         />
                       ) : (
                         <Image
@@ -87,37 +126,53 @@ const Browse = () => {
                           alt="poster"
                           src="/no-image.png"
                           className="object-cover object-center rounded"
+                          sizes="40px"
                         />
                       )}
                     </div>
 
-                    <div className="my-2 w-full flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold truncate max-w-[210px]">
-                          {(movie?.name || movie?.title).slice(0, 36)}
+                    <div className="my-2 w-full flex justify-between items-center min-w-0">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate text-white">
+                          {(item?.name || item?.title)?.slice(0, 36)}
                         </p>
-                        <div>
-                          <span className="pe-4 text-xs">
-                            {movie?.release_date || movie?.first_air_date
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400">
+                            {item?.release_date || item?.first_air_date
                               ? new Date(
-                                  movie.release_date || movie.first_air_date
+                                  item.release_date || item.first_air_date
                                 ).getFullYear()
                               : "N/A"}
                           </span>
+                          <span className="text-xs text-gray-500 capitalize">
+                            {item?.title ? "Movie" : "TV"}
+                          </span>
                         </div>
                       </div>
-                      <span className="bg-[#313036] text-white text-xs rounded-sm px-2 py-1 font-semibold">
-                        {movie?.vote_average !== 0
-                          ? movie?.vote_average &&
-                            movie?.vote_average.toFixed(1)
+                      <span className="bg-[#313036] text-white text-xs rounded-sm px-2 py-1 font-semibold ml-2 flex-shrink-0">
+                        {item?.vote_average && item?.vote_average !== 0
+                          ? item?.vote_average.toFixed(1)
                           : "N/A"}
                       </span>
                     </div>
                   </div>
                 </Link>
               ))}
-          </div>
-        )}
+            </div>
+          )}
+
+        {shouldSearch &&
+          combinedResults.length === 0 &&
+          !moviesLoading &&
+          !TvShowsLoading &&
+          !moviesError &&
+          !tvShowsError && (
+            <div className="mt-2 p-4 bg-[#1a1a1a] border border-neutral-700 rounded-md">
+              <p className="text-gray-400 text-sm">
+                No results found for "{search}"
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );
