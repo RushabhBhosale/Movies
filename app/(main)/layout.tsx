@@ -19,14 +19,12 @@ export default function RootLayout({
           } as React.CSSProperties
         }
       >
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden w-full">
           <AppSidebar />
-          <div className="overflow-auto">
-            <div className="flex w-full py-1 bg-sidebar">
-              <Navbar />
-            </div>
-            <main>{children}</main>
-          </div>
+          <SidebarInset className="flex-1 flex flex-col overflow-auto no-scrollbar">
+            <Navbar />
+            <main className="flex-1 w-full">{children}</main>
+          </SidebarInset>
         </div>
       </SidebarProvider>
     </SessionProvider>
