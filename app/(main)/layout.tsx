@@ -1,7 +1,7 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import AppSidebar from "@/components/app-sidebar";
 import BottomNav from "@/components/bottomNav";
 import { SessionProvider } from "next-auth/react";
 
@@ -24,6 +24,7 @@ export default function RootLayout({
           <SidebarInset className="flex-1 flex flex-col overflow-auto no-scrollbar">
             <Navbar />
             <main className="flex-1 w-full">{children}</main>
+            <BottomNav />
           </SidebarInset>
         </div>
       </SidebarProvider>

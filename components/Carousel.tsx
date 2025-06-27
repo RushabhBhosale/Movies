@@ -10,7 +10,6 @@ import { MTV } from "@/types/tmdb";
 import { getGenreById } from "@/utils/getGenre";
 import { BookmarkIcon } from "lucide-react";
 import { Button } from "./ui/button";
-import { fetchTmdbGenres } from "@/hooks/useTmdbGenres";
 
 interface CarouselInterface {
   tv: MTV[];
@@ -36,7 +35,7 @@ const Carousel = ({ tv, genres }: CarouselInterface) => {
               alt="backdrop"
               fill
               className="object-cover z-10"
-              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/${movie.backdrop_path}`}
+              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/original/${movie.backdrop_path}`}
             />
             <div className="absolute z-20 w-full h-full bg-black opacity-40"></div>
             <div className="absolute z-30 w-full h-full flex flex-col sm:justify-center justify-end px-6 sm:px-16">

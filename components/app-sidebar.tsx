@@ -1,164 +1,74 @@
 "use client";
 
 import * as React from "react";
-import {
-  AudioWaveform,
-  BookmarkIcon,
-  BookOpen,
-  Bot,
-  Clock,
-  Command,
-  Film,
-  Flame,
-  Frame,
-  GalleryVerticalEnd,
-  Heart,
-  Home,
-  Map,
-  PieChart,
-  Search,
-  Settings2,
-  Shield,
-  SquareTerminal,
-  Star,
-  Tags,
-  User,
-} from "lucide-react";
-
-import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { useSession } from "next-auth/react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 
-const data = {
-  user: {
-    name: "rushabh",
-    email: "rushabh@example.com",
-    avatar: "",
-  },
-  teams: [
-    {
-      name: "My Watchlist",
-      logo: BookmarkIcon,
-      plan: "Personal",
-    },
-    {
-      name: "Favorites",
-      logo: Heart,
-      plan: "All-time",
-    },
-    {
-      name: "Watch Later",
-      logo: Clock,
-      plan: "Pending",
-    },
-  ],
-  navMain: [
-    {
-      title: "Home",
-      url: "/",
-      icon: Home,
-      isActive: true,
-      items: [],
-    },
-    {
-      title: "Trending",
-      url: "/trending",
-      icon: Flame,
-      items: [
-        {
-          title: "Movies",
-          url: "/trending/movie",
-        },
-        {
-          title: "TV Shows",
-          url: "/trending/tv",
-        },
-      ],
-    },
-    {
-      title: "Genres",
-      url: "/genres",
-      icon: Tags,
-      items: [
-        {
-          title: "Action",
-          url: "/genres/action",
-        },
-        {
-          title: "Comedy",
-          url: "/genres/comedy",
-        },
-        {
-          title: "Horror",
-          url: "/genres/horror",
-        },
-        {
-          title: "Sci-Fi",
-          url: "/genres/scifi",
-        },
-      ],
-    },
-    {
-      title: "Search",
-      url: "/search",
-      icon: Search,
-      items: [],
-    },
-    {
-      title: "Profile",
-      url: "/profile",
-      icon: User,
-      items: [
-        {
-          title: "My Watchlist",
-          url: "/profile/watchlist",
-        },
-        {
-          title: "Account Settings",
-          url: "/profile/settings",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Marvel Universe",
-      url: "/collections/marvel",
-      icon: Shield,
-    },
-    {
-      name: "Christopher Nolan Films",
-      url: "/collections/nolan",
-      icon: Film,
-    },
-    {
-      name: "Top IMDB Picks",
-      url: "/collections/imdb",
-      icon: Star,
-    },
-  ],
-};
+import { Home, Film, BookmarkIcon, Heart, Search } from "lucide-react";
+import { NavUser } from "@/components/nav-user";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const navItems = [
+  {
+    group: "Explore",
+    items: [
+      { title: "Home", url: "/", icon: Home },
+      { title: "Browse", url: "/browse", icon: Film },
+      { title: "Watchlist", url: "/watchlist", icon: BookmarkIcon },
+      { title: "Favorites", url: "/favorites", icon: Heart },
+      { title: "Search", url: "/search", icon: Search },
+    ],
+  },
+];
+
+export default function AppSidebar(
+  props: React.ComponentProps<typeof Sidebar>
+) {
+  const { data: session } = useSession();
+
+  const user = {
+    name: session?.user?.name || "Guest",
+    email: session?.user?.email || "",
+    avatar: session?.user?.image || "",
+  };
+
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="mt-2">
-        <TeamSwitcher teams={data.teams} />
-      </SidebarHeader>
+    <Sidebar {...props}>
+      <SidebarHeader className="mt-2" />
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {navItems.map((group) => (
+          <SidebarGroup key={group.group}>
+            <SidebarGroupLabel>{group.group}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <a href={item.url} className="flex items-center gap-2">
+                        <item.icon className="w-4 h-4" />
+                        {item.title}
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
