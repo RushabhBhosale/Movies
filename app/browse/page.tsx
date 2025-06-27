@@ -12,6 +12,8 @@ const Browse = () => {
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const imageBaseUrl = process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL;
   const isKeyboardVisible = useKeyboardVisible();
+  const [movies, setMovies] = useState([]);
+  const [tvShows, setTvShows] = useState([]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -22,22 +24,27 @@ const Browse = () => {
   }, [search]);
 
   const shouldSearch = debouncedSearch.trim().length > 0;
-  const movies: any = fetchTmdbData(
-    shouldSearch
-      ? `/search/movie?query=${encodeURIComponent(debouncedSearch)}`
-      : ""
-  );
+  useEffect(() => {
+    if (!debouncedSearch.trim()) return;
 
-  const tvShows: any = fetchTmdbData(
-    shouldSearch
-      ? `/search/tv?query=${encodeURIComponent(debouncedSearch)}`
-      : ""
-  );
+    const fetchData = async () => {
+      const movieData: any = await fetchTmdbData(
+        `/search/movie?query=${debouncedSearch}`
+      );
+      const tvData: any = await fetchTmdbData(
+        `/search/tv?query=${debouncedSearch}`
+      );
 
-  const combinedResults = [...(movies || []), ...(tvShows || [])].sort(
-    (a, b) => (b.popularity || 0) - (a.popularity || 0)
-  );
+      setMovies(movieData?.results || []);
+      setTvShows(tvData?.results || []);
+    };
 
+    fetchData();
+  }, [debouncedSearch]);
+
+  const combinedResults: MTV[] = [...movies, ...tvShows].sort(
+    (a: MTV, b: MTV) => (b.popularity || 0) - (a.popularity || 0)
+  );
   const handleClick = () => {
     setSearch("");
   };
@@ -63,7 +70,7 @@ const Browse = () => {
               isKeyboardVisible ? "max-h-[264px]" : "max-h-[530px]"
             } overflow-y-auto rounded-md bg-[#1a1a1a] border border-neutral-700 z-50 no-scrollbar transition-all duration-300`}
           >
-            {combinedResults.slice(0, 10).map((item, index) => (
+            {combinedResults.slice(0, 10).map((item: MTV, index: number) => (
               <Link
                 onClick={handleClick}
                 key={`${item.id}-${item.title ? "movie" : "tv"}`}
