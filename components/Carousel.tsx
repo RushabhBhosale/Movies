@@ -1,3 +1,4 @@
+"use client";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/swiper-bundle.css";
 import "swiper/modules";
@@ -6,20 +7,17 @@ import Image from "next/image";
 import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { MTV } from "@/types/tmdb";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useTmdbGenres } from "@/hooks/useTmdbGenres";
 import { getGenreById } from "@/utils/getGenre";
 import { BookmarkIcon } from "lucide-react";
 import { Button } from "./ui/button";
+import { fetchTmdbGenres } from "@/hooks/useTmdbGenres";
 
 interface CarouselInterface {
   tv: MTV[];
+  genres: any;
 }
 
-const Carousel = ({ tv }: CarouselInterface) => {
-  const mobile = useIsMobile();
-  const genres = useTmdbGenres();
-
+const Carousel = ({ tv, genres }: CarouselInterface) => {
   return (
     <Swiper
       slidesPerView={1}
@@ -28,9 +26,8 @@ const Carousel = ({ tv }: CarouselInterface) => {
       pagination={{
         clickable: true,
       }}
-      navigation={!mobile}
       modules={[Pagination, Navigation]}
-      className="mySwiper w-full sm:h-[32rem] h-[32rem] rounded-xl"
+      className="mySwiper w-full h-[28rem] rounded-xl shadow-xl/10"
     >
       {tv &&
         tv.map((movie, index) => (
@@ -77,11 +74,7 @@ const Carousel = ({ tv }: CarouselInterface) => {
                 </div>
               </div>
               <div className="flex gap-7 my-6">
-                <Link
-                  href={`/detail/${movie.id}${
-                    movie.title ? `movie${movie.title}` : `tv${movie.name}`
-                  }`}
-                >
+                <Link href={`/${movie.title ? "movie" : "tv"}/${movie.id}`}>
                   <Button
                     className="!bg-white/10 cursor-pointer"
                     variant="outline"
@@ -90,11 +83,7 @@ const Carousel = ({ tv }: CarouselInterface) => {
                     Add to Watchlist
                   </Button>
                 </Link>
-                <Link
-                  href={`/detail/${movie.id}${
-                    movie.title ? `movie${movie.title}` : `tv${movie.name}`
-                  }`}
-                >
+                <Link href={`/${movie.title ? "movie" : "tv"}/${movie.id}`}>
                   <Button className="cursor-pointer">
                     <InformationCircleIcon className="w-full h-full" />
                     More Info

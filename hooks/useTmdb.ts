@@ -1,97 +1,146 @@
-import { useEffect, useState } from "react";
+export async function fetchTmdbData(
+  endpoint: string,
+  retries: number = 3
+): Promise<any> {
+  const apiKey = process.env.TMDB_API_KEY;
+  const baseUrl = process.env.TMDB_BASE_URL;
 
-interface UseTmdbReturn {
-  data: any;
-  isLoading: boolean;
-  error: any;
-}
+  if (!endpoint || !apiKey || !baseUrl) {
+    throw new Error("Missing endpoint, API key, or base URL");
+  }
 
-export const useTmdb = (endpoint: string | null): UseTmdbReturn => {
-  const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>(null);
+  const separator = endpoint.includes("?") ? "&" : "?";
+  const url = `${baseUrl}${endpoint}${separator}api_key=${apiKey}`;
 
-  const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-  const baseUrl = "https://api.themoviedb.org/3";
+  let lastError: any = null;
 
-  useEffect(() => {
-    if (!endpoint || !apiKey) {
-      setData(null);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const separator = endpoint.includes("?") ? "&" : "?";
-        const url = `${baseUrl}${endpoint}${separator}api_key=${apiKey}`;
-
-        const response = await fetch(url, {
-          signal: controller.signal,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `HTTP error! status: ${response.status} - ${response.statusText}`
-          );
-        }
-
-        const contentLength = response.headers.get("content-length");
-        if (contentLength === "0") {
-          throw new Error("Empty response received");
-        }
-
-        const responseText = await response.text();
-
-        if (!responseText) {
-          throw new Error("Empty response body");
-        }
-
-        let jsonData;
-        try {
-          jsonData = JSON.parse(responseText);
-        } catch (parseError: any) {
-          console.error("JSON Parse Error:", parseError);
-          console.error("Response text:", responseText);
-          throw new Error(`Invalid JSON response: ${parseError.message}`);
-        }
-
-        if (jsonData.success === false) {
-          throw new Error(jsonData.status_message || "API request failed");
-        }
-
-        if (endpoint.includes("/genre/")) {
-          setData(jsonData);
-        } else if (jsonData.results) {
-          setData(jsonData.results);
-        } else {
-          setData(jsonData);
-        }
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
-          console.error("Fetch error:", err);
-          setError(err);
-        }
-      } finally {
-        setIsLoading(false);
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      // Add delay between retries (exponential backoff)
+      if (attempt > 1) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 2), 5000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        console.log(
+          `Retrying TMDB request (attempt ${attempt}/${retries}) after ${delay}ms delay`
+        );
       }
-    };
 
-    fetchData();
+      const response = await fetch(url, {
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "MovieApp/1.0",
+        },
+        next: { revalidate: 3600 },
+        // Add timeout to prevent hanging requests
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+      });
 
-    return () => {
-      controller.abort();
-    };
-  }, [endpoint, apiKey]);
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        console.error("TMDB response text:", errText);
 
-  return { data, isLoading, error };
-};
+        // Handle specific HTTP errors
+        if (response.status === 429) {
+          throw new Error(`Rate limit exceeded. Status: ${response.status}`);
+        }
+        if (response.status >= 500) {
+          throw new Error(`Server error. Status: ${response.status}`);
+        }
+        if (response.status === 401) {
+          throw new Error(`Authentication failed. Check your API key.`);
+        }
+        throw new Error(
+          `HTTP error ${response.status} - ${response.statusText}`
+        );
+      }
+
+      const text = await response.text();
+      if (!text) throw new Error("Empty response body");
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err: any) {
+        console.error("Invalid JSON:", err, "\nRaw response:", text);
+        throw new Error("Failed to parse JSON");
+      }
+
+      if (data.success === false) {
+        throw new Error(data.status_message || "API request failed");
+      }
+
+      // If we get here, the request was successful
+      if (attempt > 1) {
+        console.log(`TMDB request succeeded on attempt ${attempt}`);
+      }
+
+      return data.results || data;
+    } catch (error: any) {
+      lastError = error;
+
+      // Enhanced error logging for debugging
+      console.error("TMDB API Error Details:", {
+        endpoint,
+        attempt: `${attempt}/${retries}`,
+        error: error.message,
+        code: error.code,
+        cause: error.cause?.message || error.cause,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Check if this is a retryable error
+      const isRetryableError =
+        error.message?.includes("fetch failed") ||
+        error.code === "ECONNRESET" ||
+        error.code === "ENOTFOUND" ||
+        error.code === "ETIMEDOUT" ||
+        error.name === "AbortError" ||
+        (error.message?.includes("HTTP error") && error.message?.includes("5"));
+
+      // Don't retry on authentication errors or client errors
+      if (
+        error.message?.includes("Authentication failed") ||
+        error.message?.includes("HTTP error 4")
+      ) {
+        throw error;
+      }
+
+      // If this is the last attempt or not a retryable error, throw
+      if (attempt === retries || !isRetryableError) {
+        break;
+      }
+
+      console.log(`Retryable error encountered, will retry...`);
+    }
+  }
+
+  // If we get here, all retries failed
+  console.error(`All ${retries} attempts failed for endpoint: ${endpoint}`);
+
+  // Provide user-friendly error messages based on the last error
+  if (lastError?.name === "AbortError") {
+    throw new Error(
+      "Request timed out after multiple attempts. Please try again later."
+    );
+  }
+
+  if (
+    lastError?.code === "ECONNRESET" ||
+    lastError?.message?.includes("fetch failed")
+  ) {
+    throw new Error(
+      "Connection to movie database failed. Please check your internet connection and try again."
+    );
+  }
+
+  if (lastError?.code === "ENOTFOUND") {
+    throw new Error(
+      "Unable to reach movie database servers. Please try again later."
+    );
+  }
+
+  // For other errors, throw a generic message but log the details
+  throw new Error(
+    "Movie database is temporarily unavailable. Please try again later."
+  );
+}

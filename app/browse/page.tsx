@@ -1,6 +1,6 @@
 "use client";
 import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
-import { useTmdb } from "@/hooks/useTmdb";
+import { fetchTmdbData } from "@/hooks/useTmdb";
 import { MTV } from "@/types/tmdb";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
@@ -22,22 +22,13 @@ const Browse = () => {
   }, [search]);
 
   const shouldSearch = debouncedSearch.trim().length > 0;
-
-  const {
-    data: movies,
-    isLoading: moviesLoading,
-    error: moviesError,
-  } = useTmdb(
+  const movies: any = fetchTmdbData(
     shouldSearch
       ? `/search/movie?query=${encodeURIComponent(debouncedSearch)}`
       : ""
   );
 
-  const {
-    data: tvShows,
-    isLoading: TvShowsLoading,
-    error: tvShowsError,
-  } = useTmdb(
+  const tvShows: any = fetchTmdbData(
     shouldSearch
       ? `/search/tv?query=${encodeURIComponent(debouncedSearch)}`
       : ""
@@ -50,15 +41,6 @@ const Browse = () => {
   const handleClick = () => {
     setSearch("");
   };
-
-  useEffect(() => {
-    if (moviesError) {
-      console.error("Movies API Error:", moviesError);
-    }
-    if (tvShowsError) {
-      console.error("TV Shows API Error:", tvShowsError);
-    }
-  }, [moviesError, tvShowsError]);
 
   return (
     <div className="p-6 overflow-hidden fixed inset-0 bg-[#121212] z-40">
@@ -75,104 +57,80 @@ const Browse = () => {
         />
         <MagnifyingGlassIcon className="w-5 h-5 absolute top-[6px] right-3 text-gray-400" />
 
-        {shouldSearch && (moviesLoading || TvShowsLoading) && (
-          <div className="mt-2 p-4 bg-[#1a1a1a] border border-neutral-700 rounded-md">
-            <p className="text-gray-400 text-sm">Searching...</p>
+        {shouldSearch && combinedResults.length > 0 && (
+          <div
+            className={`mt-2 flex flex-col w-full ${
+              isKeyboardVisible ? "max-h-[264px]" : "max-h-[530px]"
+            } overflow-y-auto rounded-md bg-[#1a1a1a] border border-neutral-700 z-50 no-scrollbar transition-all duration-300`}
+          >
+            {combinedResults.slice(0, 10).map((item, index) => (
+              <Link
+                onClick={handleClick}
+                key={`${item.id}-${item.title ? "movie" : "tv"}`}
+                href={`/${item.title ? "movie" : "tv"}/${item.id}`}
+              >
+                <div
+                  className={`flex gap-2 px-3 hover:bg-[#252525] transition-colors ${
+                    index % 2 === 0 ? "bg-[#161616]" : "bg-[#0f1115]"
+                  }`}
+                >
+                  <div className="relative w-[40px] my-2 h-[50px] flex-shrink-0">
+                    {item?.poster_path ? (
+                      <Image
+                        fill
+                        alt="poster"
+                        src={`${imageBaseUrl}/${item?.poster_path}`}
+                        className="object-cover object-center rounded"
+                        sizes="40px"
+                      />
+                    ) : (
+                      <Image
+                        fill
+                        alt="poster"
+                        src="/no-image.png"
+                        className="object-cover object-center rounded"
+                        sizes="40px"
+                      />
+                    )}
+                  </div>
+
+                  <div className="my-2 w-full flex justify-between items-center min-w-0">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate text-white">
+                        {(item?.name || item?.title)?.slice(0, 36)}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">
+                          {item?.release_date || item?.first_air_date
+                            ? new Date(
+                                item.release_date || item.first_air_date
+                              ).getFullYear()
+                            : "N/A"}
+                        </span>
+                        <span className="text-xs text-gray-500 capitalize">
+                          {item?.title ? "Movie" : "TV"}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="bg-[#313036] text-white text-xs rounded-sm px-2 py-1 font-semibold ml-2 flex-shrink-0">
+                      {item?.vote_average && item?.vote_average !== 0
+                        ? item?.vote_average.toFixed(1)
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
 
-        {shouldSearch && (moviesError || tvShowsError) && (
-          <div className="mt-2 p-4 bg-[#1a1a1a] border border-red-700 rounded-md">
-            <p className="text-red-400 text-sm">
-              Error loading results. Please check your API configuration.
+        {shouldSearch && combinedResults.length === 0 && (
+          <div className="mt-2 p-4 bg-[#1a1a1a] border border-neutral-700 rounded-md">
+            <p className="text-gray-400 text-sm">
+              No results found for "{search}"
             </p>
           </div>
         )}
-
-        {shouldSearch &&
-          combinedResults.length > 0 &&
-          !moviesLoading &&
-          !TvShowsLoading && (
-            <div
-              className={`mt-2 flex flex-col w-full ${
-                isKeyboardVisible ? "max-h-[264px]" : "max-h-[530px]"
-              } overflow-y-auto rounded-md bg-[#1a1a1a] border border-neutral-700 z-50 no-scrollbar transition-all duration-300`}
-            >
-              {combinedResults.slice(0, 10).map((item, index) => (
-                <Link
-                  onClick={handleClick}
-                  key={`${item.id}-${item.title ? "movie" : "tv"}`}
-                  href={`/detail/${item?.id}${
-                    item?.title ? `movie${item?.title}` : `tv${item?.name}`
-                  }`}
-                >
-                  <div
-                    className={`flex gap-2 px-3 hover:bg-[#252525] transition-colors ${
-                      index % 2 === 0 ? "bg-[#161616]" : "bg-[#0f1115]"
-                    }`}
-                  >
-                    <div className="relative w-[40px] my-2 h-[50px] flex-shrink-0">
-                      {item?.poster_path ? (
-                        <Image
-                          fill
-                          alt="poster"
-                          src={`${imageBaseUrl}/${item?.poster_path}`}
-                          className="object-cover object-center rounded"
-                          sizes="40px"
-                        />
-                      ) : (
-                        <Image
-                          fill
-                          alt="poster"
-                          src="/no-image.png"
-                          className="object-cover object-center rounded"
-                          sizes="40px"
-                        />
-                      )}
-                    </div>
-
-                    <div className="my-2 w-full flex justify-between items-center min-w-0">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate text-white">
-                          {(item?.name || item?.title)?.slice(0, 36)}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400">
-                            {item?.release_date || item?.first_air_date
-                              ? new Date(
-                                  item.release_date || item.first_air_date
-                                ).getFullYear()
-                              : "N/A"}
-                          </span>
-                          <span className="text-xs text-gray-500 capitalize">
-                            {item?.title ? "Movie" : "TV"}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="bg-[#313036] text-white text-xs rounded-sm px-2 py-1 font-semibold ml-2 flex-shrink-0">
-                        {item?.vote_average && item?.vote_average !== 0
-                          ? item?.vote_average.toFixed(1)
-                          : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-
-        {shouldSearch &&
-          combinedResults.length === 0 &&
-          !moviesLoading &&
-          !TvShowsLoading &&
-          !moviesError &&
-          !tvShowsError && (
-            <div className="mt-2 p-4 bg-[#1a1a1a] border border-neutral-700 rounded-md">
-              <p className="text-gray-400 text-sm">
-                No results found for "{search}"
-              </p>
-            </div>
-          )}
       </div>
     </div>
   );

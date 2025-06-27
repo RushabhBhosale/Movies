@@ -124,6 +124,7 @@ export interface MTV {
   title: string;
   adult: boolean;
   backdrop_path: string;
+  belongs_to_collection: any;
   created_by: any;
   episode_run_time: number[];
   first_air_date: string;
@@ -149,6 +150,7 @@ export interface MTV {
   production_countries: ProductionCountry[];
   seasons: Season[];
   vote_average: number;
+  vote_count: number;
   runtime: number;
   status: string;
   release_date: string;

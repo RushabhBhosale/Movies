@@ -11,7 +11,7 @@ import {
 
 const Navbar = () => {
   return (
-    <div className="sticky top-0 z-50 h-12 w-full flex items-center justify-between px-6 lg:pr-4 lg:pl-2 py-4 bg-black">
+    <div className="sticky top-0 z-50 h-12 w-full flex items-center justify-between px-6 lg:pr-4 lg:pl-2 py-4 bg-sidebar">
       <div className="flex items-center gap-4">
         <SidebarTrigger />
         <Breadcrumb>
@@ -23,7 +23,7 @@ const Navbar = () => {
         </Breadcrumb>
       </div>
       <div className="flex items-center gap-4">
-        <div className="relative hidden sm:block bg-transparent">
+        <div className="relative hidden sm:block">
           <Search />
         </div>
       </div>

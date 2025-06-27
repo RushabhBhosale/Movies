@@ -1,18 +1,18 @@
-import { useTmdb } from "@/hooks/useTmdb";
 import { Genre } from "@/types/tmdb";
+import { fetchTmdbData } from "./useTmdb";
 
-export const useTmdbGenres = () => {
-  const { data: movieGenres } = useTmdb("/genre/movie/list");
-  const { data: tvGenres } = useTmdb("/genre/tv/list");
+export async function fetchTmdbGenres(): Promise<Genre[]> {
+  const movieGenresResponse = await fetchTmdbData("/genre/movie/list");
+  const tvGenresResponse = await fetchTmdbData("/genre/tv/list");
 
-  const combined = [
-    ...(movieGenres?.genres || []),
-    ...(tvGenres?.genres || []),
-  ];
+  const movieGenres = movieGenresResponse.genres || [];
+  const tvGenres = tvGenresResponse.genres || [];
+
+  const combined = [...movieGenres, ...tvGenres];
 
   const uniqueGenres: Genre[] = Array.from(
-    new Map(combined.map((g) => [g.id, g])).values()
+    new Map(combined.map((g: Genre) => [g.id, g])).values()
   );
 
   return uniqueGenres;
-};
+}

@@ -1,29 +1,15 @@
-"use client";
 import Carousel from "@/components/Carousel";
-import { useTmdb } from "@/hooks/useTmdb";
+import { fetchTmdbData } from "@/hooks/useTmdb";
+import { fetchTmdbGenres } from "@/hooks/useTmdbGenres";
 
-const Home = () => {
-  const { data, isLoading, error } = useTmdb("/trending/movie/week");
-
-  if (isLoading)
-    return (
-      <div className="p-6">
-        <p className="text-white">Loading...</p>
-      </div>
-    );
-  if (error) {
-    console.error("Home component error:", error);
-    return (
-      <div className="p-6">
-        <p className="text-red-400">Error fetching movies: {error.message}</p>
-      </div>
-    );
-  }
+const Home = async () => {
+  const data: any = await fetchTmdbData("/trending/movie/week");
+  const genres: any = await fetchTmdbGenres();
 
   return (
-    <div>
+    <div className="p-4">
       {data && data.length > 0 ? (
-        <Carousel tv={data} />
+        <Carousel tv={data} genres={genres} />
       ) : (
         <div className="p-6">
           <p className="text-gray-400">No movies found</p>
