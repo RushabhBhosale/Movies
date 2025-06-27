@@ -79,7 +79,7 @@ const Browse = () => {
                       <Image
                         fill
                         alt="poster"
-                        src={`${imageBaseUrl}/${item?.poster_path}`}
+                        src={`${imageBaseUrl}/original/${item?.poster_path}`}
                         className="object-cover object-center rounded"
                         sizes="40px"
                       />

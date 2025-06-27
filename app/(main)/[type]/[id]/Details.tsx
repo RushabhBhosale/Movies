@@ -70,12 +70,11 @@ export default function DetailsPageClient({
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-black/90 via-gray-900 to-black">
         {movie?.backdrop_path && (
           <div className="absolute inset-0 opacity-50">
             <Image
-              src={`${imageBaseUrl}${movie?.backdrop_path}`}
+              src={`${imageBaseUrl}/original/${movie?.backdrop_path}`}
               alt={title}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -89,7 +88,7 @@ export default function DetailsPageClient({
             {movie?.poster_path ? (
               <div className="aspect-[6/5] md:aspect-[6/2] lg:aspect-[2/3] relative rounded-lg overflow-hidden shadow-2xl w-full">
                 <Image
-                  src={`${imageBaseUrl}/${movie?.poster_path}`}
+                  src={`${imageBaseUrl}/w500/${movie?.poster_path}`}
                   alt={title}
                   fill
                   className="object-cover"
@@ -187,7 +186,6 @@ export default function DetailsPageClient({
         </div>
       </section>
 
-      {/* Details Section */}
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
           {director && (
@@ -197,7 +195,7 @@ export default function DetailsPageClient({
                 <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
                   {director.profile_path ? (
                     <Image
-                      src={`${imageBaseUrl}${director.profile_path}`}
+                      src={`${imageBaseUrl}/w500/${director.profile_path}`}
                       alt={director.name}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -249,18 +247,17 @@ export default function DetailsPageClient({
           </div>
         </div>
 
-        {/* Cast Section */}
         <h3 className="text-white font-semibold mb-4">Main Cast</h3>
-        <div className="flex overflow-x-auto gap-5">
+        <div className="flex overflow-x-auto gap-10">
           {mainCast.map((actor: any) => (
             <div key={actor.id} className="text-center flex-shrink-0">
-              <div className="relative w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-2 rounded-full overflow-hidden bg-gray-700">
+              <div className="relative size-16 md:size-24 lg:size-32 mx-auto mb-2 rounded-full overflow-hidden bg-gray-700">
                 {actor.profile_path ? (
                   <Image
-                    src={`${imageBaseUrl}${actor.profile_path}`}
+                    src={`${imageBaseUrl}/original/${actor.profile_path}`}
                     alt={actor.name}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="500px"
                     className="object-cover"
                   />
                 ) : (
@@ -280,7 +277,6 @@ export default function DetailsPageClient({
         </div>
       </section>
 
-      {/* Recommendations Section */}
       <section className="container mx-auto px-4 py-8">
         <h3 className="text-white font-semibold mb-4">You Might Also Like</h3>
         <div className="overflow-x-auto">
@@ -296,7 +292,6 @@ export default function DetailsPageClient({
         </div>
       </section>
 
-      {/* Reviews Section */}
       <section className="container mx-auto px-4 py-8">
         <h3 className="text-white font-semibold mb-4">Reviews</h3>
         {topReviews.length > 0 ? (
@@ -310,7 +305,7 @@ export default function DetailsPageClient({
                         src={
                           review.author_details.avatar_path.startsWith("/https")
                             ? review.author_details.avatar_path.slice(1)
-                            : `${imageBaseUrl}${review.author_details.avatar_path}`
+                            : `${imageBaseUrl}/w500/${review.author_details.avatar_path}`
                         }
                         alt={review.author}
                         fill
@@ -355,7 +350,6 @@ export default function DetailsPageClient({
         )}
       </section>
 
-      {/* TV Seasons Section */}
       {type === "tv" && movie?.seasons && (
         <section className="container mx-auto px-4 py-8">
           <h3 className="text-white font-semibold mb-4">Seasons</h3>
@@ -366,7 +360,7 @@ export default function DetailsPageClient({
                   <div className="relative w-12 h-18 lg:w-16 lg:h-24 flex-shrink-0 rounded overflow-hidden bg-gray-700">
                     {season.poster_path ? (
                       <Image
-                        src={`${imageBaseUrl}${season.poster_path}`}
+                        src={`${imageBaseUrl}/w500${season.poster_path}`}
                         alt={season.name}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -398,7 +392,6 @@ export default function DetailsPageClient({
         </section>
       )}
 
-      {/* Movie Collection Section */}
       {type === "movie" && collection && (
         <section className="container mx-auto px-4 py-8">
           <h3 className="text-white font-semibold mb-4">{collection.name}</h3>
@@ -410,35 +403,7 @@ export default function DetailsPageClient({
                   new Date(b.release_date).getTime()
               )
               .map((item: any) => (
-                <div key={item.id} className="group cursor-pointer">
-                  <div className="relative aspect-[2/3] mb-2 rounded-lg overflow-hidden bg-gray-700">
-                    {item.poster_path ? (
-                      <Image
-                        src={`${imageBaseUrl}${item.poster_path}`}
-                        alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                        No Image
-                      </div>
-                    )}
-                    {item.id === parseInt(id) && (
-                      <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-xs">
-                        Current
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-white text-sm font-medium mb-1 leading-tight">
-                    {item.title}
-                  </p>
-                  <p className="text-white/60 text-xs">
-                    {item.release_date
-                      ? new Date(item.release_date).getFullYear()
-                      : "TBA"}
-                  </p>
-                </div>
+                <MovieCard key={item.id} movie={movie} />
               ))}
           </div>
         </section>

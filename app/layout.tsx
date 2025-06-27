@@ -32,10 +32,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SwrProvider>
-          {children}
-          <BottomNav />
-        </SwrProvider>
+        <SwrProvider>{children}</SwrProvider>
       </body>
     </html>
   );

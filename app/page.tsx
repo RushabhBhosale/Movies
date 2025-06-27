@@ -15,6 +15,7 @@ import {
   ArrowRight,
   User2Icon,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function LandingPage() {
   return (
@@ -27,15 +28,19 @@ export default function LandingPage() {
               <span className="text-2xl font-bold text-gray-100">WatchPro</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                className="text-gray-300 hover:text-indigo-200"
-              >
-                Sign In
-              </Button>
-              <Button className="bg-indigo-500 hover:bg-indigo-600 text-white">
-                Get Started
-              </Button>
+              <Link href="/auth/signin">
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-indigo-200"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button className="bg-indigo-500 hover:bg-indigo-600 text-white">
+                  Get Started
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -67,21 +72,25 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white px-8 py-4 text-lg font-semibold group"
-              >
-                Get Started Free
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-gray-600 text-gray-200 hover:bg-gray-700/50 px-8 py-4 text-lg"
-              >
-                <User2Icon />
-                Sign Up
-              </Button>
+              <Link href="/auth/signup">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white px-8 py-4 text-lg font-semibold group"
+                >
+                  Get Started Free
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+              <Link href="/auth/signin">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-gray-600 text-gray-200 hover:bg-gray-700/50 px-8 py-4 text-lg"
+                >
+                  <User2Icon />
+                  Sign In
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -265,7 +274,7 @@ export default function LandingPage() {
               size="lg"
               className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white px-10 py-4 text-xl font-semibold group"
             >
-              Get Get Started Free
+              Get Started Free
               <ArrowRight className="ml-2 h-6 w-6 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>

@@ -17,15 +17,13 @@ const Search = () => {
   const shouldSearch = debouncedSearch.trim().length > 0;
   const imageBaseUrl = process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL;
 
-  // Use ref to track the current request
   const currentRequestRef = useRef<AbortController | null>(null);
   const lastRequestTimeRef = useRef<number>(0);
 
-  // Increase debounce time to reduce API calls
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search.trim());
-    }, 600); // Increased from 400ms to 600ms
+    }, 600);
     return () => clearTimeout(handler);
   }, [search]);
 
@@ -37,15 +35,13 @@ const Search = () => {
         return;
       }
 
-      // Cancel previous request if it exists
       if (currentRequestRef.current) {
         currentRequestRef.current.abort();
       }
 
-      // Rate limiting: ensure minimum time between requests
       const now = Date.now();
       const timeSinceLastRequest = now - lastRequestTimeRef.current;
-      const minInterval = 300; // Minimum 300ms between requests
+      const minInterval = 300;
 
       if (timeSinceLastRequest < minInterval) {
         await new Promise((resolve) =>
@@ -53,7 +49,6 @@ const Search = () => {
         );
       }
 
-      // Create new AbortController for this request
       const abortController = new AbortController();
       currentRequestRef.current = abortController;
 
@@ -66,14 +61,12 @@ const Search = () => {
           `/api/search?q=${encodeURIComponent(debouncedSearch)}`,
           {
             signal: abortController.signal,
-            // Add cache headers to potentially reduce server load
             headers: {
-              "Cache-Control": "max-age=60", // Cache for 1 minute
+              "Cache-Control": "max-age=60",
             },
           }
         );
 
-        // Check if request was aborted
         if (abortController.signal.aborted) {
           return;
         }
@@ -86,7 +79,6 @@ const Search = () => {
         setResults(data.results || []);
         setError(null);
       } catch (err: any) {
-        // Don't show error for aborted requests
         if (err.name === "AbortError") {
           return;
         }
@@ -108,7 +100,6 @@ const Search = () => {
     setError(null);
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (currentRequestRef.current) {
@@ -129,7 +120,6 @@ const Search = () => {
         />
         <MagnifyingGlassIcon className="size-5 absolute top-2 right-3 text-gray-400 pointer-events-none" />
 
-        {/* Loading indicator */}
         {isLoading && (
           <div className="absolute top-2 right-10">
             <div className="animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full"></div>
@@ -164,7 +154,7 @@ const Search = () => {
                           <Image
                             fill
                             alt="poster"
-                            src={`${imageBaseUrl}/${item?.poster_path}`}
+                            src={`${imageBaseUrl}/w500/${item?.poster_path}`}
                             className="object-cover object-center rounded"
                             sizes="40px"
                           />
