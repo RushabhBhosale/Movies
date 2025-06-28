@@ -16,7 +16,6 @@ export async function fetchTmdbData(
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Add delay between retries (exponential backoff)
       if (attempt > 1) {
         const delay = Math.min(1000 * Math.pow(2, attempt - 2), 5000);
         await new Promise((resolve) => setTimeout(resolve, delay));
@@ -31,15 +30,13 @@ export async function fetchTmdbData(
           "User-Agent": "MovieApp/1.0",
         },
         next: { revalidate: 3600 },
-        // Add timeout to prevent hanging requests
-        signal: AbortSignal.timeout(10000), // 10 second timeout
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!response.ok) {
         const errText = await response.text().catch(() => "");
         console.error("TMDB response text:", errText);
 
-        // Handle specific HTTP errors
         if (response.status === 429) {
           throw new Error(`Rate limit exceeded. Status: ${response.status}`);
         }
@@ -69,7 +66,6 @@ export async function fetchTmdbData(
         throw new Error(data.status_message || "API request failed");
       }
 
-      // If we get here, the request was successful
       if (attempt > 1) {
         console.log(`TMDB request succeeded on attempt ${attempt}`);
       }
@@ -78,7 +74,6 @@ export async function fetchTmdbData(
     } catch (error: any) {
       lastError = error;
 
-      // Enhanced error logging for debugging
       console.error("TMDB API Error Details:", {
         endpoint,
         attempt: `${attempt}/${retries}`,
@@ -88,7 +83,6 @@ export async function fetchTmdbData(
         timestamp: new Date().toISOString(),
       });
 
-      // Check if this is a retryable error
       const isRetryableError =
         error.message?.includes("fetch failed") ||
         error.code === "ECONNRESET" ||
@@ -97,7 +91,6 @@ export async function fetchTmdbData(
         error.name === "AbortError" ||
         (error.message?.includes("HTTP error") && error.message?.includes("5"));
 
-      // Don't retry on authentication errors or client errors
       if (
         error.message?.includes("Authentication failed") ||
         error.message?.includes("HTTP error 4")
@@ -105,7 +98,6 @@ export async function fetchTmdbData(
         throw error;
       }
 
-      // If this is the last attempt or not a retryable error, throw
       if (attempt === retries || !isRetryableError) {
         break;
       }
@@ -114,10 +106,8 @@ export async function fetchTmdbData(
     }
   }
 
-  // If we get here, all retries failed
   console.error(`All ${retries} attempts failed for endpoint: ${endpoint}`);
 
-  // Provide user-friendly error messages based on the last error
   if (lastError?.name === "AbortError") {
     throw new Error(
       "Request timed out after multiple attempts. Please try again later."
@@ -139,7 +129,6 @@ export async function fetchTmdbData(
     );
   }
 
-  // For other errors, throw a generic message but log the details
   throw new Error(
     "Movie database is temporarily unavailable. Please try again later."
   );
