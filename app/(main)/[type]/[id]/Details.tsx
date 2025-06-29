@@ -65,9 +65,6 @@ export default function DetailsPageClient({
     setIsInWatchlist(!isInWatchlist);
   };
 
-  console.log("Initaila Data", initialData);
-  console.log("type, id", type, id, genres);
-
   return (
     <div className="min-h-screen bg-black text-white">
       <section className="relative bg-gradient-to-br from-black/90 via-gray-900 to-black">
@@ -266,12 +263,14 @@ export default function DetailsPageClient({
                   </div>
                 )}
               </div>
-              <p className="text-white text-xs font-medium mb-1 leading-tight max-w-[80px]">
-                {actor.name}
-              </p>
-              <p className="text-white/60 text-xs leading-tight max-w-[80px]">
-                {actor.character}
-              </p>
+              <div className="flex flex-col items-center">
+                <p className="text-white text-xs font-medium mb-1 leading-tight max-w-[80px]">
+                  {actor.name}
+                </p>
+                <p className="text-white/60 text-xs leading-tight max-w-[80px]">
+                  {actor.character}
+                </p>
+              </div>
             </div>
           ))}
         </div>

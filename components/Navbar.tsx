@@ -7,6 +7,7 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbSeparator,
 } from "./ui/breadcrumb";
 import {
   DropdownMenu,
@@ -16,21 +17,41 @@ import {
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const Navbar = () => {
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const segments = pathname
+    .split("/")
+    .filter((seg) => seg)
+    .map((seg) => seg.charAt(0).toUpperCase() + seg.slice(1));
 
   return (
-    <div className="sticky top-0 z-50 h-12 w-full flex items-center justify-between px-6 lg:pr-4 lg:pl-2 py-4 bg-sidebar">
+    <div className="sticky top-0 z-50 h-16 w-full flex items-center justify-between px-6 lg:pr-4 lg:pl-2 py-4 bg-sidebar">
       <div className="flex items-center gap-4">
         <SidebarTrigger />
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbItem className="hidden lg:block">
-              <BreadcrumbLink href="/home">Home</BreadcrumbLink>
-            </BreadcrumbItem>
+            {segments.map((segment, i) => {
+              const href =
+                "/" +
+                segments
+                  .slice(0, i + 1)
+                  .join("/")
+                  .toLowerCase();
+
+              return (
+                <React.Fragment key={href}>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href={href}>{segment}</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  {i < segments.length - 1 && <BreadcrumbSeparator />}
+                </React.Fragment>
+              );
+            })}
           </BreadcrumbList>
         </Breadcrumb>
       </div>

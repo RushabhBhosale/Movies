@@ -17,9 +17,23 @@ const watchListItemSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Watching", "On-hold", "Dropped", "Completed"],
+      enum: ["Watching", "On-Hold", "Dropped", "Completed", "Plan to Watch"],
       default: "Watching",
       required: true,
+    },
+    progress: {
+      type: Number,
+      default: 0,
+    },
+    season: {
+      type: Number,
+    },
+    episode: {
+      type: Number,
+    },
+    lastWatchedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   {

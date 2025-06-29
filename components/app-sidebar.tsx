@@ -2,32 +2,39 @@
 
 import * as React from "react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
 
-import { Home, Film, BookmarkIcon, Heart, Search } from "lucide-react";
+import {
+  Home,
+  Film,
+  BookmarkIcon,
+  Heart,
+  Search,
+  User,
+  FilmIcon,
+} from "lucide-react";
 import { NavUser } from "@/components/nav-user";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const navItems = [
   {
-    group: "Explore",
     items: [
-      { title: "Home", url: "/", icon: Home },
+      { title: "Home", url: "/home", icon: Home },
       { title: "Browse", url: "/browse", icon: Film },
       { title: "Watchlist", url: "/watchlist", icon: BookmarkIcon },
       { title: "Favorites", url: "/favorites", icon: Heart },
       { title: "Search", url: "/search", icon: Search },
+      { title: "Profile", url: "/profile", icon: User },
     ],
   },
 ];
@@ -36,6 +43,7 @@ export default function AppSidebar(
   props: React.ComponentProps<typeof Sidebar>
 ) {
   const { data: session } = useSession();
+  const pathname = usePathname();
 
   const user = {
     name: session?.user?.name || "Guest",
@@ -45,26 +53,36 @@ export default function AppSidebar(
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="mt-2" />
-      <SidebarContent>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 mt-2">
+          <FilmIcon />
+          Watch Pro
+        </div>
+      </SidebarHeader>
+      <SidebarContent className="p-3">
         {navItems.map((group) => (
-          <SidebarGroup key={group.group}>
-            <SidebarGroupLabel>{group.group}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a href={item.url} className="flex items-center gap-2">
-                        <item.icon className="w-4 h-4" />
-                        {item.title}
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarMenu key={group.items[0].title}>
+            {group.items.map((item) => {
+              const isActive = pathname.startsWith(item.url);
+              return (
+                <SidebarMenuItem className="py-1" key={item.title}>
+                  <SidebarMenuButton asChild className="p-5">
+                    <a
+                      href={item.url}
+                      className={`flex items-center gap-2 px-2 rounded-md ${
+                        isActive
+                          ? "bg-muted text-white"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      <item.icon className={`w-4 h-4 mt-0.5`} />
+                      {item.title}
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
         ))}
       </SidebarContent>
       <SidebarFooter>

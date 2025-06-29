@@ -1,7 +1,18 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Hero from "./Hero";
+import { useSession } from "next-auth/react";
 
 const Home = () => {
-  return <div>Home</div>;
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  return (
+    <div className="p-3">
+      <Hero />
+    </div>
+  );
 };
 
 export default Home;
