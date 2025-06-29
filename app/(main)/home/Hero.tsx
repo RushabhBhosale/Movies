@@ -82,7 +82,7 @@ const Hero = () => {
     : new Date().getFullYear();
 
   return (
-    <div className="relative w-full h-80 overflow-hidden rounded-xl">
+    <div className="relative w-full md:h-80 overflow-hidden rounded-xl">
       <div
         className="absolute inset-0 bg-cover bg-center brightness-40 blur-sm transition-all duration-500"
         style={{
@@ -92,14 +92,14 @@ const Hero = () => {
 
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-blue-900/40 to-indigo-900/60" />
 
-      <div className="relative z-10 p-8 text-white h-full flex flex-col justify-between">
+      <div className="relative z-10 p-4 md:p-8 text-white h-full flex flex-col justify-between">
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-4xl font-bold drop-shadow-lg">
+            <h1 className="text-2xl md:text-4xl font-bold drop-shadow-lg">
               {getTimeBasedGreeting()},{" "}
               {user?.name?.split(" ")[0] || "Movie Buff"} 🎬
             </h1>
-            <div className="text-right text-sm opacity-90">
+            <div className="text-right text-sm opacity-90 hidden md:block">
               <div className="font-medium">
                 {currentTime.toLocaleDateString()}
               </div>
@@ -107,7 +107,7 @@ const Hero = () => {
             </div>
           </div>
 
-          <p className="text-lg opacity-90 max-w-2xl">
+          <p className="text-lg opacity-90 max-w-2xl my-2 md:my-0">
             {getPersonalizedMessage()}
           </p>
         </div>
