@@ -1,5 +1,4 @@
-import WatchListItem from "@/models/WatchlistItem";
-import { connectDB } from "@/utils/db";
+import clientPromise from "@/utils/mongoDb";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -9,39 +8,29 @@ export async function GET(req: Request) {
 
     if (!userId) {
       return NextResponse.json(
-        {
-          error: "Please provide the userId",
-        },
-        {
-          status: 404,
-        }
+        { error: "Please provide the userId" },
+        { status: 404 }
       );
     }
 
-    await connectDB();
+    const client = await clientPromise;
+    const db = client.db();
+    const watchlist = await db
+      .collection("watchlistitems")
+      .find({ userId })
+      .toArray();
 
-    const watchlist = await WatchListItem.find({ userId });
-
-    if (watchlist.length < 0) {
+    if (!watchlist || watchlist.length === 0) {
       return NextResponse.json(
-        {
-          message: "Nothing added to the list",
-        },
+        { message: "Nothing added to the list" },
         { status: 200 }
       );
     }
 
-    return NextResponse.json(
-      {
-        data: watchlist,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({ watchlist }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      {
-        error: `Server Error. Getting the watchlist ${error}`,
-      },
+      { error: `Server Error. Getting the watchlist: ${error}` },
       { status: 500 }
     );
   }

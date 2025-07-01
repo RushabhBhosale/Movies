@@ -1,5 +1,5 @@
 import { getMediaDetails, getDetailedTVRuntime } from "@/hooks/useTmdb";
-import WatchListItem from "@/models/WatchlistItem";
+import clientPromise from "@/utils/mongoDb";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -14,15 +14,25 @@ export async function GET(req: Request) {
       );
     }
 
-    const watchlistItems = await WatchListItem.find({ userId });
+    const client = await clientPromise;
+    const db = client.db();
+    const watchlistItems = await db
+      .collection("watchlistitems")
+      .find({ userId })
+      .toArray();
+
     const statusCount: Record<string, number> = {};
     const genreMap: Record<string, number> = {};
     let totalMinutes = 0;
     let totalRating = 0;
     let ratingCount = 0;
 
+    const mediaIds: string[] = [];
+
     for (const item of watchlistItems) {
       const { status, mediaId, type } = item;
+
+      mediaIds.push(mediaId);
 
       statusCount[status] = (statusCount[status] || 0) + 1;
 
@@ -76,6 +86,7 @@ export async function GET(req: Request) {
           completionRate: `${completionRate}%`,
           allGenres: genreMap,
           totalItems: watchlistItems.length,
+          mediaIds,
         },
       },
       { status: 200 }

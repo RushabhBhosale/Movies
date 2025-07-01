@@ -1,5 +1,5 @@
-import { connectDB } from "@/utils/db";
-import Review from "@/models/Review";
+import clientPromise from "@/utils/mongoDb";
+import { ObjectId } from "mongodb";
 import { ReviewUpdateSchema } from "@/schema/ReviewSchema";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
@@ -9,23 +9,26 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const parsed = ReviewUpdateSchema.parse(body);
 
-    await connectDB();
+    const client = await clientPromise;
+    const db = client.db();
 
-    const updatedReview = await Review.findByIdAndUpdate(
-      parsed.id,
+    const result = await db.collection("reviews").findOneAndUpdate(
+      { _id: new ObjectId(parsed.id) },
       {
-        rating: parsed.rating,
-        review: parsed.review,
+        $set: {
+          rating: parsed.rating,
+          review: parsed.review,
+        },
       },
-      { new: true }
+      { returnDocument: "after" }
     );
 
-    if (!updatedReview) {
+    if (!result.value) {
       return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 
     return NextResponse.json(
-      { message: "Review updated successfully", data: updatedReview },
+      { message: "Review updated successfully", data: result.value },
       { status: 200 }
     );
   } catch (error) {

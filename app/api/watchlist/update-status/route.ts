@@ -1,25 +1,37 @@
-import WatchListItem from "@/models/WatchlistItem";
+import clientPromise from "@/utils/mongoDb";
 import { WatchlistUpdateSchema } from "@/schema/WatchlistSchema";
-import { STATUS } from "@/types/watchlist";
-import { connectDB } from "@/utils/db";
 import { NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
 import { ZodError } from "zod";
 
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-
     const parsed = WatchlistUpdateSchema.parse(body);
 
-    await connectDB();
+    const client = await clientPromise;
+    const db = client.db();
+    const collection = db.collection("watchlistitems");
 
-    const updatedItem = await WatchListItem.findOneAndUpdate(
-      { _id: parsed.id },
-      { status: parsed.status },
-      { new: true }
+    const updatePayload: Record<string, any> = {
+      status: parsed.status,
+    };
+
+    if (parsed.lastSeason !== undefined) {
+      updatePayload.lastSeason = parsed.lastSeason;
+    }
+
+    if (parsed.lastEpisode !== undefined) {
+      updatePayload.lastEpisode = parsed.lastEpisode;
+    }
+
+    const updated = await collection.findOneAndUpdate(
+      { _id: new ObjectId(parsed.id) },
+      { $set: updatePayload },
+      { returnDocument: "after" }
     );
 
-    if (!updatedItem) {
+    if (!updated.value) {
       return NextResponse.json(
         { error: "Watchlist item not found" },
         { status: 404 }
@@ -27,7 +39,7 @@ export async function PUT(req: Request) {
     }
 
     return NextResponse.json(
-      { message: "Watchlist item updated", data: updatedItem },
+      { message: "Watchlist item updated", data: updated.value },
       { status: 200 }
     );
   } catch (error) {
@@ -44,7 +56,11 @@ export async function PUT(req: Request) {
       );
     }
     return NextResponse.json(
-      { error: `Server error: ${error}` },
+      {
+        error: `Server error: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      },
       { status: 500 }
     );
   }

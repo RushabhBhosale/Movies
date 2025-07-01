@@ -1,5 +1,5 @@
-import WatchListItem from "@/models/WatchlistItem";
-import { connectDB } from "@/utils/db";
+import clientPromise from "@/utils/mongoDb";
+import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 export async function DELETE(req: Request) {
@@ -9,32 +9,26 @@ export async function DELETE(req: Request) {
 
     if (!watchlistItemId) {
       return NextResponse.json(
-        {
-          error: "Please provide the watchlistItemId",
-        },
-        {
-          status: 404,
-        }
+        { error: "Please provide the watchlistItemId" },
+        { status: 404 }
       );
     }
 
-    await connectDB();
+    const client = await clientPromise;
+    const db = client.db();
+    const result = await db
+      .collection("watchlistitems")
+      .deleteOne({ _id: new ObjectId(watchlistItemId) });
 
-    const deletedItem = await WatchListItem.findByIdAndDelete(watchlistItemId);
-
-    if (!deletedItem) {
+    if (result.deletedCount === 0) {
       return NextResponse.json(
-        {
-          error: "Item not found or already deleted",
-        },
+        { error: "Item not found or already deleted" },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      {
-        message: "Item deleted successfully",
-      },
+      { message: "Item deleted successfully" },
       { status: 200 }
     );
   } catch (error) {

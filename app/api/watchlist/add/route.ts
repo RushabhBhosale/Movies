@@ -1,24 +1,27 @@
-import User from "@/models/User";
-import WatchListItem from "@/models/WatchlistItem";
 import { WatchlistSchema } from "@/schema/WatchlistSchema";
-import { connectDB } from "@/utils/db";
+import clientPromise from "@/utils/mongoDb";
+import { fetchTmdbData, getMediaDetails } from "@/hooks/useTmdb";
 import { NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
 import { ZodError } from "zod";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
     const parsed = WatchlistSchema.parse(body);
 
-    await connectDB();
+    const client = await clientPromise;
+    const db = client.db();
 
-    const user = await User.findById(parsed.userId);
+    const users = db.collection("users");
+    const watchlist = db.collection("watchlistitems");
+
+    const user = await users.findOne({ _id: new ObjectId(parsed.userId) });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const existing = await WatchListItem.findOne({
+    const existing = await watchlist.findOne({
       userId: parsed.userId,
       mediaId: parsed.mediaId,
       type: parsed.type,
@@ -28,10 +31,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Already in watchlist" });
     }
 
-    const item = await WatchListItem.create(parsed);
+    const mediaData = await fetchTmdbData(`/${parsed.type}/${parsed.mediaId}`);
+
+    const result = await watchlist.insertOne({
+      ...parsed,
+      details: mediaData,
+      createdAt: new Date(),
+    });
 
     return NextResponse.json(
-      { message: "Added to watchlist", data: item },
+      {
+        message: "Added to watchlist",
+        data: { _id: result.insertedId, ...parsed, mediaData },
+      },
       { status: 201 }
     );
   } catch (error) {
@@ -47,6 +59,7 @@ export async function POST(req: Request) {
         { status: 422 }
       );
     }
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Server Error" },
       { status: 500 }

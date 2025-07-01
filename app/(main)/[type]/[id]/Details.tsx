@@ -11,6 +11,7 @@ import {
 } from "../../../../types/tmdb";
 import { getGenreById } from "@/utils/getGenre";
 import TrailerButton from "@/components/trailerButton";
+import FormattedDate from "@/components/FormattedDate";
 
 interface DetailsPageClientProps {
   type: "movie" | "tv";
@@ -332,7 +333,7 @@ export default function DetailsPageClient({
                       )}
                     </div>
                     <p className="text-white/60 text-sm mb-2">
-                      {new Date(review.created_at).toLocaleDateString()}
+                      <FormattedDate date={review.created_at} />
                     </p>
                     <p className="text-white/80 text-sm leading-relaxed">
                       {review.content.length > 300

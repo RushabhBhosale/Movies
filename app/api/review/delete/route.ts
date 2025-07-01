@@ -1,5 +1,5 @@
-import { connectDB } from "@/utils/db";
-import Review from "@/models/Review";
+import clientPromise from "@/utils/mongoDb";
+import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
 
@@ -12,11 +12,14 @@ export async function DELETE(req: Request) {
     const body = await req.json();
     const parsed = DeleteReviewSchema.parse(body);
 
-    await connectDB();
+    const client = await clientPromise;
+    const db = client.db();
 
-    const deleted = await Review.findByIdAndDelete(parsed.id);
+    const result = await db
+      .collection("reviews")
+      .deleteOne({ _id: new ObjectId(parsed.id) });
 
-    if (!deleted) {
+    if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 

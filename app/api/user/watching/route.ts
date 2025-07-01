@@ -12,21 +12,19 @@ export async function GET(req: Request) {
 
     const client = await clientPromise;
     const db = client.db();
-
-    const reviews = await db
-      .collection("reviews")
-      .find({ userId })
-      .sort({ createdAt: -1 })
+    const watchingItems = await db
+      .collection("watchlistitems")
+      .find({ userId, status: "Watching" })
+      .project({ mediaId: 1, _id: 0 })
       .toArray();
 
-    return NextResponse.json({ data: reviews }, { status: 200 });
-  } catch (error) {
+    const mediaIds = watchingItems.map((item) => item.mediaId);
+
+    return NextResponse.json({ mediaIds }, { status: 200 });
+  } catch (err) {
+    console.error("Error fetching watching list:", err);
     return NextResponse.json(
-      {
-        error: `Server error: ${
-          error instanceof Error ? error.message : error
-        }`,
-      },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
