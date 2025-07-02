@@ -1,33 +1,15 @@
-"use client";
-import Navbar from "@/components/Navbar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import AppSidebar from "@/components/app-sidebar";
-import BottomNav from "@/components/bottomNav";
-import { SessionProvider } from "next-auth/react";
+// SERVER-ONLY LAYOUT WRAPPER
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import ProtectedLayoutUI from "./ServerLayout";
 
-export default function RootLayout({
+export default async function Layout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  return (
-    <SessionProvider>
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "12rem",
-          } as React.CSSProperties
-        }
-      >
-        <div className="flex h-screen overflow-hidden w-full">
-          <AppSidebar />
-          <SidebarInset className="flex-1 flex flex-col overflow-auto no-scrollbar">
-            <Navbar />
-            <main className="flex-1 w-full">{children}</main>
-            <BottomNav />
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    </SessionProvider>
-  );
+}) {
+  const session = await auth();
+  if (!session) redirect("/");
+
+  return <ProtectedLayoutUI>{children}</ProtectedLayoutUI>;
 }
