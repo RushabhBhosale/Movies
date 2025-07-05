@@ -32,18 +32,22 @@ function LoadingSkeleton() {
 
 export default async function DetailsPage({ params }: PageProps) {
   const { type, id } = await params;
-  const movie = await fetchTmdbData(`/${type}/${id}`);
   const genres = await fetchTmdbGenres();
-  const credits = await fetchTmdbData(`/${type}/${id}/credits`);
-  const videos = await fetchTmdbData(`/${type}/${id}/videos`);
-  const reviews = await fetchTmdbData(`/${type}/${id}/reviews`);
-  const recommendations = await fetchTmdbData(`/${type}/${id}/recommendations`);
+  const movie = await fetchTmdbData(
+    `/${type}/${id}?append_to_response=credits,videos,reviews,recommendations`
+  );
+
+  const credits = movie.credits;
+  const videos = movie.videos.results;
+  const reviews = movie.reviews.results;
+  const recommendations = movie.recommendations.results;
 
   let collection = null;
   if (movie?.belongs_to_collection?.id) {
     const collectionId = movie.belongs_to_collection.id;
     collection = await fetchTmdbData(`/collection/${collectionId}`);
   }
+  console.log("movie", movie);
 
   const initialData = {
     movie: movie,

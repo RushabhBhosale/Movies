@@ -3,12 +3,7 @@ import { useState } from "react";
 import MovieCard from "@/components/MovieCard";
 import { StarIcon, Bookmark } from "lucide-react";
 import Image from "next/image";
-import {
-  CastMember,
-  Genre,
-  MTV,
-  ProductionCompany,
-} from "../../../../types/tmdb";
+import { Genre, MTV } from "../../../../types/tmdb";
 import { getGenreById } from "@/utils/getGenre";
 import TrailerButton from "@/components/trailerButton";
 import FormattedDate from "@/components/FormattedDate";
@@ -53,14 +48,19 @@ export default function DetailsPageClient({
     : movie?.overview?.slice(0, 200) + (isLongOverview ? "..." : "");
 
   const mainCast = credits?.cast?.slice(0, 8) || [];
-  const director = credits?.crew?.find(
-    (person: any) => person.job === "Director"
-  );
+
+  const director =
+    type === "movie"
+      ? credits?.crew?.find((person: any) => person.job === "Director")
+      : movie?.created_by?.[0] ||
+        credits?.crew?.find((person: any) => person.job === "Director");
+
   const producers =
     credits?.crew
       ?.filter((person: any) => person.job === "Producer")
       .slice(0, 2) || [];
-  const topReviews = reviews?.results?.slice(0, 3) || [];
+
+  const topReviews = reviews?.slice(0, 3) || [];
 
   const handleWatchlistToggle = () => {
     setIsInWatchlist(!isInWatchlist);
@@ -186,12 +186,14 @@ export default function DetailsPageClient({
 
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
-          {director && (
+          {(director || (type === "tv" && movie?.created_by?.length > 0)) && (
             <div>
-              <h3 className="text-white font-semibold mb-4">Director</h3>
+              <h3 className="text-white font-semibold mb-4">
+                {type === "movie" ? "Director" : "Creator"}
+              </h3>
               <div className="flex items-center gap-4">
                 <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
-                  {director.profile_path ? (
+                  {director?.profile_path ? (
                     <Image
                       src={`${imageBaseUrl}/w500/${director.profile_path}`}
                       alt={director.name}
@@ -206,8 +208,10 @@ export default function DetailsPageClient({
                   )}
                 </div>
                 <div>
-                  <p className="text-white font-medium">{director.name}</p>
-                  <p className="text-white/60 text-sm">Director</p>
+                  <p className="text-white font-medium">{director?.name}</p>
+                  <p className="text-white/60 text-sm">
+                    {type === "movie" ? "Director" : "Creator"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -284,7 +288,9 @@ export default function DetailsPageClient({
             {recommendations?.length > 0 ? (
               recommendations
                 .slice(0, 10)
-                .map((item: any) => <MovieCard key={item.id} movie={item} />)
+                .map((item: any) => (
+                  <MovieCard status="" key={item.id} movie={item} />
+                ))
             ) : (
               <div className="text-white/60">No recommendations available</div>
             )}

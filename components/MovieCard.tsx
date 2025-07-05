@@ -20,7 +20,7 @@ interface Movie {
 
 interface MovieCardProps {
   movie: Movie;
-  status: string;
+  status?: string;
   isInWatchlist?: boolean;
   onWatchlistToggle?: (movieId: number, isAdded: boolean) => void;
   watchedEpisodes?: number;
@@ -29,7 +29,7 @@ interface MovieCardProps {
 
 const MovieCard = ({
   movie,
-  status,
+  status = "",
   isInWatchlist = false,
   onWatchlistToggle,
   watchedEpisodes = 0,

@@ -12,16 +12,10 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import EditModal from "@/components/EditModal";
+import { STATUSES } from "@/utils/options";
 
-const statuses = [
-  "All",
-  "Watching",
-  "Completed",
-  "Plan to Watch",
-  "On-Hold",
-  "Dropped",
-];
 const sortOptions = [
   { value: "dateAdded", label: "Date Added" },
   { value: "rating", label: "Rating" },
@@ -38,6 +32,7 @@ const Watchlist = () => {
   const [sortBy, setSortBy] = useState("dateAdded");
   const [sortOrder, setSortOrder] = useState("desc");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user.id) fetchData();
@@ -99,19 +94,10 @@ const Watchlist = () => {
     setWatchlist(data.watchlist || []);
   };
 
-  const handleEdit = (e: React.MouseEvent, movieId: string) => {
-    e.stopPropagation();
-    console.log(`Edit movie ${movieId}`);
-  };
-
   const handleAdd = (e: React.MouseEvent, movieId: string) => {
     e.stopPropagation();
     console.log(`Add/Update progress for movie ${movieId}`);
-  };
-
-  const handleRowClick = (movie: any) => {
-    const mediaType = movie.details.title ? "movie" : "tv";
-    window.location.href = `/${mediaType}/${movie.mediaId}`;
+    setOpenMenuId(null);
   };
 
   const formatRuntime = (minutes: number) => {
@@ -145,9 +131,27 @@ const Watchlist = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 text-white">
-      <div className="flex justify-between items-start md:items-center mb-6 flex-col md:flex-row gap-4">
-        <h1 className="text-xl md:text-3xl font-bold">My Watchlist</h1>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+      <div className="flex justify-between items-center mb-6 flex-col md:flex-row gap-4">
+        <Tabs
+          className="w-full"
+          defaultValue="All"
+          onValueChange={setActiveTab}
+        >
+          <div className="overflow-x-auto no-scrollbar">
+            <TabsList className="flex w-max bg-zinc-800">
+              {STATUSES.map((status) => (
+                <TabsTrigger
+                  key={status.id}
+                  value={status.name}
+                  className="text-sm px-4 py-3 whitespace-nowrap"
+                >
+                  {status.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+        </Tabs>
+        <div className="flex flex-col shrink-0 md:flex-row items-center gap-4 w-full md:w-auto">
           <div className="relative w-full md:w-auto">
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
@@ -212,33 +216,13 @@ const Watchlist = () => {
         </div>
       </div>
 
-      <Tabs
-        className="w-full mb-4"
-        defaultValue="All"
-        onValueChange={setActiveTab}
-      >
-        <div className="overflow-x-auto no-scrollbar">
-          <TabsList className="flex w-max bg-zinc-800">
-            {statuses.map((status) => (
-              <TabsTrigger
-                key={status}
-                value={status}
-                className="text-sm px-4 py-2 whitespace-nowrap"
-              >
-                {status}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-      </Tabs>
-
       {filtered.length === 0 ? (
         <div className="text-center mt-20">
           <p className="text-gray-400 text-lg">No items found.</p>
         </div>
       ) : (
         <>
-          <div className="hidden sm:block bg-zinc-900 rounded-lg border border-zinc-700 overflow-x-auto">
+          <div className="hidden lg:block bg-zinc-900 rounded-lg border border-zinc-700 overflow-x-auto">
             <div className="bg-zinc-800 px-6 py-4 border-b border-zinc-700 min-w-[800px]">
               <div className="grid grid-cols-12 gap-4 items-center text-sm font-medium text-gray-300">
                 <div className="col-span-4">Title</div>
@@ -257,23 +241,24 @@ const Watchlist = () => {
                 return (
                   <div
                     key={movie._id}
-                    className="px-6 py-4 hover:bg-zinc-800 cursor-pointer transition-colors duration-200"
-                    onClick={() => handleRowClick(movie)}
+                    className="px-6 py-4 hover:bg-zinc-800 transition-colors duration-200"
                   >
                     <div className="grid grid-cols-12 gap-4 items-center">
                       <div className="col-span-4 flex items-center gap-3">
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/w92/${movie.details.poster_path}`}
-                          alt="poster"
-                          className="w-12 h-16 rounded-md object-cover flex-shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-white truncate">
-                            {movie.details.title || movie.details.name}
-                          </h3>
-                          <p className="text-xs text-gray-400 truncate">
-                            {movie.details.tagline || "No tagline available"}
-                          </p>
+                        <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                          <img
+                            src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/w92/${movie.details.poster_path}`}
+                            alt="poster"
+                            className="w-12 h-16 rounded-md object-cover flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <h3 className="font-semibold text-white truncate">
+                              {movie.details.title || movie.details.name}
+                            </h3>
+                            <p className="text-xs text-gray-400 truncate">
+                              {movie.details.tagline || "No tagline available"}
+                            </p>
+                          </div>
                         </div>
                       </div>
                       <div className="col-span-2 text-sm text-gray-300 truncate">
@@ -307,42 +292,23 @@ const Watchlist = () => {
                       </div>
                       <div className="col-span-1">
                         <span
-                          className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            movie.status === "Completed"
-                              ? "bg-green-900 text-green-300"
-                              : movie.status === "Watching"
-                              ? "bg-blue-900 text-blue-300"
-                              : movie.status === "Plan to Watch"
-                              ? "bg-purple-900 text-purple-300"
-                              : movie.status === "On-Hold"
-                              ? "bg-yellow-900 text-yellow-300"
-                              : "bg-red-900 text-red-300"
-                          }`}
+                          className={`text-xs px-2 py-1 rounded-full font-medium bg-white/10`}
                         >
                           {movie.status}
                         </span>
                       </div>
                       <div className="col-span-1 flex items-center gap-1">
-                        <button
-                          onClick={(e) => handleEdit(e, movie._id)}
-                          className="p-1.5 hover:bg-zinc-700 rounded-md transition-colors"
-                          title="Edit"
-                        >
-                          <Edit
-                            size={14}
-                            className="text-gray-400 hover:text-white"
-                          />
-                        </button>
-                        <button
+                        <EditModal movie={movie} />
+                        <Button
+                          variant="outline"
                           onClick={(e) => handleAdd(e, movie._id)}
-                          className="p-1.5 hover:bg-zinc-700 rounded-md transition-colors"
                           title="Update Progress"
                         >
                           <Plus
                             size={14}
                             className="text-gray-400 hover:text-white"
                           />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -350,19 +316,84 @@ const Watchlist = () => {
               })}
             </div>
           </div>
-          <div className="sm:hidden">
+
+          <div className="lg:hidden space-y-0">
             {filtered.map((movie) => {
-              const progressInfo = getProgressInfo(movie);
+              const isTV = !!movie.details.name;
+              const watchedEpisodes = movie.watchedEpisodes || 0;
+              const totalEpisodes = movie.details.number_of_episodes || 0;
+              const progressPercent =
+                isTV && totalEpisodes > 0
+                  ? (watchedEpisodes / totalEpisodes) * 100
+                  : 0;
+
               return (
-                <Card>
-                  <div>
+                <div
+                  key={movie._id}
+                  className="flex gap-3 my-4 hover:bg-zinc-800 transition-colors cursor-pointer"
+                >
+                  <div className="flex-shrink-0">
                     <img
                       src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/w92/${movie.details.poster_path}`}
                       alt="poster"
-                      className="w-12 h-16 rounded-md object-cover flex-shrink-0"
+                      className="w-16 h-full rounded-md object-cover"
                     />
                   </div>
-                </Card>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0 pr-2">
+                          <h3 className="font-medium text-white text-sm leading-tight mb-1">
+                            {movie.details.title || movie.details.name}
+                          </h3>
+                          <p className="text-xs text-gray-400">
+                            {isTV ? "TV" : "Movie"},{" "}
+                            {movie.details.release_date?.slice(0, 4) ||
+                              movie.details.first_air_date?.slice(0, 4) ||
+                              "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="w-full bg-zinc-700 rounded-full h-2 mb-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <Star className="text-yellow-400" size={14} />
+                            <span className="text-sm text-gray-300">
+                              {movie.details.vote_average?.toFixed(1) || "N/A"}
+                            </span>
+                          </div>
+
+                          {isTV ? (
+                            <span className="text-sm text-gray-300">
+                              {watchedEpisodes} / {totalEpisodes || "??"} ep
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-300">
+                              {formatRuntime(movie.details.runtime)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-around">
+                    <EditModal movie={movie} />
+                    <Button
+                      variant="outline"
+                      onClick={(e) => handleAdd(e, movie._id)}
+                      className="p-1.5 hover:bg-zinc-700 rounded-md transition-colors"
+                    >
+                      <Plus size={14} className="text-gray-400" />
+                    </Button>
+                  </div>
+                </div>
               );
             })}
           </div>
