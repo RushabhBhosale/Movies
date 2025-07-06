@@ -14,7 +14,6 @@ if (process.env.NODE_ENV === "development") {
   if (!(global as any)._mongoClientPromise) {
     client = new MongoClient(uri, options);
     (global as any)._mongoClientPromise = client.connect().then((c) => {
-      console.log("🟢 Connected to MongoDB (DEV)");
       return c;
     });
   }

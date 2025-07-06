@@ -122,6 +122,7 @@ export interface TVShow {
 
 export interface MTV {
   title: string;
+  watchedEpisodes: number;
   adult: boolean;
   backdrop_path: string;
   belongs_to_collection: any;

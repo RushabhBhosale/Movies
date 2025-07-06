@@ -17,12 +17,8 @@ export async function PUT(req: Request) {
       status: parsed.status,
     };
 
-    if (parsed.lastSeason !== undefined) {
-      updatePayload.lastSeason = parsed.lastSeason;
-    }
-
-    if (parsed.lastEpisode !== undefined) {
-      updatePayload.lastEpisode = parsed.lastEpisode;
+    if (parsed.watchedEpisodes !== undefined) {
+      updatePayload.watchedEpisodes = parsed.watchedEpisodes;
     }
 
     const updated = await collection.findOneAndUpdate(

@@ -5,44 +5,36 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Bookmark, BookmarkCheck } from "lucide-react";
-
-interface Movie {
-  id: number;
-  title?: string;
-  name?: string;
-  poster_path: string;
-  vote_average: number;
-  release_date?: string;
-  first_air_date?: string;
-  number_of_episodes?: number;
-  number_of_seasons?: number;
-}
+import { MTV } from "@/types/tmdb";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: MTV;
   status?: string;
-  isInWatchlist?: boolean;
-  onWatchlistToggle?: (movieId: number, isAdded: boolean) => void;
-  watchedEpisodes?: number;
-  totalEpisodes?: number;
 }
 
-const MovieCard = ({
-  movie,
-  status = "",
-  isInWatchlist = false,
-  onWatchlistToggle,
-  watchedEpisodes = 0,
-  totalEpisodes,
-}: MovieCardProps) => {
-  const [isWatchlisted, setIsWatchlisted] = useState(isInWatchlist);
+const MovieCard = ({ movie, status = "" }: MovieCardProps) => {
+  const [isWatchlisted, setIsWatchlisted] = useState();
+  const { data: session } = useSession();
 
-  const handleWatchlistClick = (e: React.MouseEvent) => {
+  const handleWatchlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const newState = !isWatchlisted;
-    setIsWatchlisted(newState);
-    onWatchlistToggle?.(movie.id, newState);
+
+    const payload = {
+      userId: session?.user.id,
+      mediaId: movie.id,
+      type: movie.name ? "tv" : "movie",
+      status: "Watch Later",
+    };
+    try {
+      const res = await axios.post("/api/watchlist/add", payload);
+      toast.success(res.data.message);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   const movieTitle = movie?.title || movie?.name || "Unknown Title";
@@ -51,9 +43,9 @@ const MovieCard = ({
     : movie?.first_air_date
     ? new Date(movie.first_air_date).getFullYear()
     : "N/A";
-
+  const watchedEpisodes = movie.watchedEpisodes;
   const isTvShow = !movie?.title && movie?.name;
-  const episodes = totalEpisodes || movie?.number_of_episodes || 0;
+  const episodes: any = movie?.number_of_episodes;
   const progressPercentage =
     episodes > 0 ? (watchedEpisodes / episodes) * 100 : 0;
 
@@ -70,7 +62,7 @@ const MovieCard = ({
           loading="lazy"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
 
         <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
           <h3 className="font-semibold text-base mb-2 line-clamp-2 leading-tight">
@@ -101,18 +93,14 @@ const MovieCard = ({
                 value={progressPercentage}
                 className="h-1.5 bg-white/20"
               />
-              <div className="text-xs text-center">
-                {progressPercentage.toFixed(0)}% Complete
-              </div>
             </div>
           )}
         </div>
       </Link>
 
-      {/* Stickers & Buttons OUTSIDE the Link */}
       <Badge
         variant="secondary"
-        className="absolute top-3 right-3 text-xs bg-black/70 text-white border-0 z-10"
+        className="absolute top-3 right-3 text-xs bg-white text-black border-0 z-10"
       >
         {status}
       </Badge>

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MovieCard from "@/components/MovieCard";
 import { StarIcon, Bookmark } from "lucide-react";
 import Image from "next/image";
@@ -7,6 +7,9 @@ import { Genre, MTV } from "../../../../types/tmdb";
 import { getGenreById } from "@/utils/getGenre";
 import TrailerButton from "@/components/trailerButton";
 import FormattedDate from "@/components/FormattedDate";
+import { useSession } from "next-auth/react";
+import axios from "axios";
+import { toast } from "sonner";
 
 interface DetailsPageClientProps {
   type: "movie" | "tv";
@@ -28,6 +31,7 @@ export default function DetailsPageClient({
   initialData,
   genres,
 }: DetailsPageClientProps) {
+  const { data: session } = useSession();
   const { movie, credits, videos, reviews, recommendations, collection } =
     initialData;
   const imageBaseUrl = process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL;
@@ -41,6 +45,27 @@ export default function DetailsPageClient({
   const maxSize = 4.5;
   const titleShrink = title?.length ? title.length * 0.05 : 0;
   const adjustedMax = Math.max(maxSize - titleShrink, minSize);
+
+  useEffect(() => {
+    checkWatchlist();
+  }, [session, movie?.id]);
+
+  const checkWatchlist = async () => {
+    if (!session?.user.id) return;
+
+    try {
+      const res = await axios.get("/api/watchlist/in-watchlist", {
+        params: {
+          userId: session.user.id,
+          mediaId: movie.id,
+          type: movie.name ? "tv" : "movie",
+        },
+      });
+      setIsInWatchlist(res.data.inWatchlist);
+    } catch (err) {
+      console.error("Watchlist check failed:", err);
+    }
+  };
 
   const isLongOverview = movie?.overview?.length > 200;
   const displayedOverview = showFull
@@ -62,8 +87,19 @@ export default function DetailsPageClient({
 
   const topReviews = reviews?.slice(0, 3) || [];
 
-  const handleWatchlistToggle = () => {
-    setIsInWatchlist(!isInWatchlist);
+  const handleWatchlistToggle = async () => {
+    const payload = {
+      userId: session?.user.id,
+      mediaId: movie.id,
+      type: movie.name ? "tv" : "movie",
+      status: "Watch Later",
+    };
+    try {
+      const res = await axios.post("/api/watchlist/add", payload);
+      toast.success(res.data.message);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   return (
