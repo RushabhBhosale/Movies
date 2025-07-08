@@ -1,389 +1,389 @@
 import { useIsMobile } from "@/hooks/use-mobile";
-import React, { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "./ui/sheet";
-import { Edit, Star, StarIcon, Loader2 } from "lucide-react";
-import { Button } from "./ui/button";
 import { MTV } from "@/types/tmdb";
-import { STATUSES } from "@/utils/options";
+import { useSession } from "next-auth/react";
+import React, { useEffect, useState } from "react";
+import moment from "moment";
+import { Edit, Star, Calendar, Clock, Trophy } from "lucide-react";
 import Image from "next/image";
-import { Input } from "./ui/input";
+import { STATUSES } from "@/utils/options";
+import { Button } from "./ui/button";
+import PlainModal from "./PlainModal";
 import { Textarea } from "./ui/textarea";
-import { Badge } from "./ui/badge";
+import axios from "axios";
+import { toast } from "sonner";
 
-interface EditModalProps {
-  movie: any;
-  onSave?: (data: any) => void;
-}
-
-const EditModal = ({ movie, onSave }: EditModalProps) => {
-  const item = movie.details;
+const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
+  const { data: session } = useSession();
+  const item: MTV = movie.details;
+  const isMovie = !!item.title;
   const isMobile = useIsMobile();
-  const title = item.title || movie?.details.name;
-
-  // State management
-  const [selectedStatus, setSelectedStatus] = useState(movie.status || "");
-  const [progress, setProgress] = useState(
-    movie.watchedEpisodes?.toString() || ""
+  const [rating, setRating] = useState(movie.userRating);
+  const [open, setOpen] = useState(false);
+  const [selectedSeasonId, setSelectedSeasonId] = useState(movie.lastSeasonId);
+  const [selectedEpisode, setSelectedEpisode] = useState(
+    movie.lastEpisodeId || 1
   );
-  const [rating, setRating] = useState(movie.rating || 0);
-  const [review, setReview] = useState(movie.review || "");
-  const [hoverRating, setHoverRating] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [globalEpNumber, setGlobalEpNumber] = useState(movie.globalEpisodeNo);
+  const [review, setReview] = useState(movie.review);
+  const [selectedStatus, setSelectedStatus] = useState(movie.status);
 
-  const posterUrl = item.poster_path
-    ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-    : "/placeholder-poster.jpg";
+  useEffect(() => {
+    if (!item?.seasons || !movie.lastSeasonId || !movie.lastEpisodeId) return;
 
-  const handleSave = async () => {
-    if (!movie._id) {
-      return;
+    setSelectedSeasonId(movie.lastSeasonId.toString());
+    setSelectedEpisode(movie.lastEpisodeId);
+    const season = getSortedSeasons(item.seasons).find(
+      (s) => s.id.toString() === movie.lastSeasonId.toString()
+    );
+    const global = getGlobalEpisodeNumber(
+      item.seasons,
+      season?.season_number || 1,
+      movie.lastEpisodeId
+    );
+    setGlobalEpNumber(global);
+  }, [open]);
+
+  const getSortedSeasons = (seasons: any[]) => {
+    return seasons
+      ?.filter((s) => s.season_number > 0)
+      .sort((a, b) => a.season_number - b.season_number);
+  };
+
+  const getGlobalEpisodeNumber = (
+    seasons: { season_number: number; episode_count: number }[],
+    targetSeasonNumber: number,
+    targetEpisode: number
+  ) => {
+    const sorted = getSortedSeasons(seasons);
+    let globalEp = 0;
+
+    for (const season of sorted) {
+      if (season.season_number === targetSeasonNumber) {
+        return globalEp + targetEpisode;
+      }
+      globalEp += season.episode_count;
     }
 
-    setIsLoading(true);
+    return null;
+  };
+
+  const getSeasonAndEpisode = (
+    globalEp: number,
+    seasons: { season_number: number; episode_count: number }[]
+  ) => {
+    const sorted = getSortedSeasons(seasons);
+    let count = 0;
+
+    for (const season of sorted) {
+      const { episode_count, season_number } = season;
+      if (globalEp <= count + episode_count) {
+        return {
+          season_number,
+          episode: globalEp - count,
+        };
+      }
+      count += episode_count;
+    }
+
+    return null;
+  };
+
+  const handleSeasonChange = (id: string) => {
+    setSelectedSeasonId(id);
+    setSelectedEpisode(1);
+
+    const season = getSortedSeasons(item.seasons).find(
+      (s) => s.id.toString() === id
+    );
+
+    if (season) {
+      const global = getGlobalEpisodeNumber(
+        item.seasons,
+        season.season_number,
+        1
+      );
+      setGlobalEpNumber(global);
+    }
+  };
+
+  const handleEpisodeChange = (ep: string) => {
+    const epNum = Number(ep);
+    setSelectedEpisode(epNum);
+
+    const selectedSeason = getSortedSeasons(item.seasons)?.find(
+      (season) => season.id.toString() === selectedSeasonId
+    );
+    const selectedSeasonNumber = selectedSeason?.season_number;
+
+    if (selectedSeasonNumber != null) {
+      const global = getGlobalEpisodeNumber(
+        item.seasons,
+        selectedSeasonNumber,
+        epNum
+      );
+      setGlobalEpNumber(global);
+    }
+  };
+
+  const handleGlobalEpisodeChange = (val: number) => {
+    setGlobalEpNumber(val);
+
+    const result = getSeasonAndEpisode(val, item.seasons);
+    if (result) {
+      console.log("ghjdhjuscvsw", result);
+      const season = getSortedSeasons(item.seasons).find(
+        (s) => s.season_number === result.season_number
+      );
+      if (season) {
+        setSelectedSeasonId(season.id.toString());
+        setSelectedEpisode(result.episode);
+      }
+    }
+  };
+
+  const selectedSeasonData = getSortedSeasons(item.seasons)?.find(
+    (season) => season.id.toString() === selectedSeasonId
+  );
+
+  const handleSaveChanges = async () => {
+    if (!session?.user) return;
+
+    const payload = {
+      id: movie._id,
+      status: selectedStatus,
+      userRating: rating ?? null,
+      globalEpisodeNo: globalEpNumber ?? null,
+      lastEpisodeId: selectedEpisode || null,
+      lastSeasonId:
+        selectedSeasonId !== "none" ? Number(selectedSeasonId) : null,
+      review: review,
+    };
+
     try {
-      const updatePayload: any = {
-        id: movie._id,
-        status: selectedStatus,
-      };
-
-      if (item.number_of_episodes) {
-        updatePayload.watchedEpisodes = parseInt(progress) || 0;
-      }
-
-      const response = await fetch("/api/watchlist", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatePayload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update watchlist item");
-      }
-
-      const result = await response.json();
-
-      const fullUpdateData = {
-        ...result.data,
-        rating,
-        review,
-        updatedAt: new Date().toISOString(),
-      };
-
-      onSave?.(fullUpdateData);
-
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Error updating watchlist item:", error);
-    } finally {
-      setIsLoading(false);
+      const res = await axios.put("/api/watchlist/update-status", payload);
+      toast.success(res.data.message);
+      onSave?.();
+      setOpen(false);
+    } catch (err: any) {
+      console.error("API error", err);
     }
   };
 
-  const StarRating = ({ rating, onRatingChange, size = "w-6 h-6" }: any) => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => onRatingChange(star)}
-            onMouseEnter={() => setHoverRating(star)}
-            onMouseLeave={() => setHoverRating(0)}
-            className="transition-colors hover:scale-110 transform"
-          >
-            <Star
-              className={`${size} ${
-                star <= (hoverRating || rating)
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-gray-300"
-              }`}
-            />
-          </button>
-        ))}
-        {rating > 0 && (
-          <span className="ml-2 text-sm text-muted-foreground">{rating}/5</span>
-        )}
-      </div>
-    );
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`/api/watchlist/delete`, {
+        params: { watchlistItemId: movie._id },
+      });
+      onSave?.();
+      setOpen(false);
+    } catch (error) {
+      console.error("Delete failed", error);
+    }
   };
 
-  const EpisodeProgress = () => {
-    const totalEpisodes = item.number_of_episodes || 0;
-    const watchedEpisodes = parseInt(progress) || 0;
-
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <Input
-            type="number"
-            min="0"
-            max={totalEpisodes}
-            value={progress}
-            onChange={(e) => setProgress(e.target.value)}
-            className="w-24"
-            placeholder="0"
-          />
-          <span className="text-sm text-muted-foreground">
-            / {totalEpisodes} episodes
-          </span>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Progress</span>
-            <span>{Math.round((watchedEpisodes / totalEpisodes) * 100)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(watchedEpisodes / totalEpisodes) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-10 gap-1 max-h-32 overflow-y-auto">
-          {Array.from({ length: totalEpisodes }).map((_, i) => (
-            <div
-              key={i}
-              onClick={() => setProgress(String(i + 1))}
-              className={`aspect-square flex items-center justify-center text-xs cursor-pointer rounded transition-colors ${
-                i < watchedEpisodes
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-              }`}
-            >
-              {i + 1}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const DesktopContent = () => (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Edit className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="w-full !max-w-[800px] max-h-[90vh] overflow-hidden p-0">
-        {/* Header with backdrop */}
-        <div className="relative">
-          {item.backdrop_path && (
-            <div className="absolute inset-0 opacity-20">
+  return (
+    <div>
+      <Button
+        onClick={() => setOpen(true)}
+        variant="outline"
+        size="icon"
+        className="w-9 h-8 border border-border/50 bg-background/80 backdrop-blur-sm hover:bg-background hover:border-border transition-all duration-200"
+      >
+        <Edit className="w-4 h-4" />
+      </Button>
+      <PlainModal size="lg" isOpen={open} onClose={() => setOpen(false)}>
+        <div className="w-full !max-w-[900px] max-h-[90vh] h-[90vh] sm:h-[95vh] flex flex-col rounded-2xl bg-background border border-border/50 shadow-2xl overflow-hidden">
+          <div className="relative h-32 flex-shrink-0 overflow-hidden">
+            {item.backdrop_path && (
               <Image
-                src={`https://image.tmdb.org/t/p/w1280${item.backdrop_path}`}
+                src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/original/${item.backdrop_path}`}
                 alt=""
                 fill
                 className="object-cover"
               />
-            </div>
-          )}
-          <div className="relative bg-gradient-to-t from-background to-transparent p-6">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-white">
-                {title}
-              </DialogTitle>
-              <DialogDescription className="text-gray-300">
-                {item.release_date || item.first_air_date} •{" "}
-                {item.runtime || `${item.number_of_episodes} episodes`}
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-6 overflow-y-auto">
-          {/* Movie poster and basic info */}
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <Image
-                src={posterUrl}
-                alt={title}
-                width={120}
-                height={180}
-                className="rounded-lg object-cover"
-              />
-            </div>
-            <div className="flex-1 space-y-3">
-              <div>
-                <h3 className="font-semibold mb-2">Status</h3>
-                <div className="flex flex-wrap gap-2">
-                  {STATUSES.map((status) => (
-                    <Badge
-                      key={status.id}
-                      variant={
-                        selectedStatus === status.name ? "default" : "outline"
-                      }
-                      className="cursor-pointer transition-colors"
-                      onClick={() => setSelectedStatus(status.name)}
-                    >
-                      {status.name}
-                    </Badge>
-                  ))}
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-8">
+              <div className="text-white">
+                <h1 className="text-3xl font-bold mb-2">
+                  {item.name || item.title}
+                </h1>
+                <div className="flex items-center gap-4 text-sm text-white/80">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {moment(item.first_air_date || item.release_date).year()}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {isMovie
+                      ? `${item.runtime} mins`
+                      : `${item.number_of_episodes} eps`}
+                  </div>
+                  {item.vote_average && (
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      {item.vote_average.toFixed(1)}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Rating</h3>
-                <StarRating rating={rating} onRatingChange={setRating} />
-              </div>
             </div>
           </div>
 
-          {/* Progress tracking */}
-          <div>
-            <h3 className="font-semibold mb-3">
-              {item.number_of_episodes ? "Episode Progress" : "Duration"}
-            </h3>
-            {item.number_of_episodes ? (
-              <EpisodeProgress />
-            ) : (
-              <div className="text-sm text-muted-foreground">
-                Runtime: {item.runtime} minutes
-              </div>
-            )}
-          </div>
-
-          {/* Review section */}
-          <div>
-            <h3 className="font-semibold mb-3">Review</h3>
-            <Textarea
-              value={review}
-              onChange={(e) => setReview(e.target.value)}
-              placeholder="Share your thoughts about this movie/show..."
-              className="min-h-[100px] resize-none"
-            />
-          </div>
-
-          {/* Overview */}
-          {item.overview && (
-            <div>
-              <h3 className="font-semibold mb-2">Overview</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {item.overview}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="px-6 py-4 border-t bg-muted/50">
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button
-              onClick={handleSave}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Save Changes
-            </Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-
-  const MobileContent = () => (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Edit className="w-4 h-4" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="w-full sm:w-[400px] p-0">
-        <div className="h-full flex flex-col">
-          <SheetHeader className="p-4 border-b">
-            <SheetTitle className="text-left">{title}</SheetTitle>
-          </SheetHeader>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* Status */}
-            <div>
-              <h3 className="font-semibold mb-2">Status</h3>
-              <div className="flex flex-wrap gap-2">
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-8 space-y-8">
+              <div className="flex gap-3 flex-wrap">
                 {STATUSES.map((status) => (
-                  <Badge
+                  <button
                     key={status.id}
-                    variant={
-                      selectedStatus === status.name ? "default" : "outline"
-                    }
-                    className="cursor-pointer"
+                    type="button"
                     onClick={() => setSelectedStatus(status.name)}
+                    className={`px-3 py-1 border border-white/50 rounded-md transition-all ${
+                      selectedStatus === status.name
+                        ? "bg-white/70 text-black font-semibold"
+                        : "text-white/80 hover:bg-white/20"
+                    }`}
                   >
                     {status.name}
-                  </Badge>
+                  </button>
                 ))}
               </div>
-            </div>
 
-            {/* Rating */}
-            <div>
-              <h3 className="font-semibold mb-2">Rating</h3>
-              <StarRating
-                rating={rating}
-                onRatingChange={setRating}
-                size="w-5 h-5"
-              />
-            </div>
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Overview
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {item.overview.slice(0, isMobile ? 100 : 300)}
+                  {item.overview.length > 300 && "..."}
+                </p>
+              </div>
 
-            {/* Progress */}
-            <div>
-              <h3 className="font-semibold mb-2">
-                {item.number_of_episodes ? "Progress" : "Duration"}
-              </h3>
-              {item.number_of_episodes ? (
-                <EpisodeProgress />
-              ) : (
-                <div className="text-sm text-muted-foreground">
-                  Runtime: {item.runtime} minutes
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Your Rating
+                  </h2>
+                </div>
+                <div className="flex gap-2 overflow-x-auto py-2">
+                  {Array.from({ length: 19 }).map((_, i) => {
+                    const val: any = 1 + i * 0.5;
+                    return (
+                      <button
+                        key={val}
+                        onClick={() => setRating(val)}
+                        className={`size-7 text-xs px-3 flex items-center justify-center rounded-lg border-2 cursor-pointer  ${
+                          rating === val
+                            ? "bg-white/70 text-black border-white/70 shadow-lg"
+                            : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
+                        }`}
+                      >
+                        {val}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {!isMovie && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Progress
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <select
+                        value={selectedSeasonId}
+                        onChange={(e) => handleSeasonChange(e.target.value)}
+                        className="w-full border border-border/50 bg-background text-foreground rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                      >
+                        <option value="none">Choose Season</option>
+                        {getSortedSeasons(item.seasons)?.map((season) => (
+                          <option key={season.id} value={season.id}>
+                            {season.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <input
+                        type="number"
+                        min={1}
+                        value={globalEpNumber || ""}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          handleGlobalEpisodeChange(val);
+                        }}
+                        className="w-full border border-border/50 bg-background text-foreground rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                        placeholder="Enter episode number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <select
+                      value={selectedEpisode}
+                      onChange={(e) => handleEpisodeChange(e.target.value)}
+                      className="w-full md:w-1/2 border border-border/50 bg-background text-foreground rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    >
+                      {selectedEpisode ? (
+                        Array.from({
+                          length: selectedSeasonData?.episode_count,
+                        }).map((_, i) => (
+                          <option key={i + 1} value={i + 1}>
+                            Episode {i + 1}
+                          </option>
+                        ))
+                      ) : (
+                        <option>Choose episode</option>
+                      )}
+                    </select>
+                  </div>
                 </div>
               )}
-            </div>
 
-            {/* Review */}
-            <div>
-              <h3 className="font-semibold mb-2">Review</h3>
-              <Textarea
-                value={review}
-                onChange={(e) => setReview(e.target.value)}
-                placeholder="Share your thoughts..."
-                className="min-h-[80px] resize-none"
-              />
-            </div>
-          </div>
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Review
+                </h2>
+                <Textarea
+                  value={review}
+                  onChange={(e: any) => setReview(e.target.value)}
+                  placeholder="Share your thoughts about this show..."
+                  className="min-h-[120px] resize-none border border-border/50 bg-background text-foreground rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                />
+              </div>
 
-          <div className="p-4 border-t bg-muted/50">
-            <Button onClick={handleSave} className="w-full">
-              Save Changes
-            </Button>
+              <Button className="bg-primary" onClick={() => handleDelete()}>
+                Delete from watchlist
+              </Button>
+
+              <div className="flex mb-12 justify-end gap-3 pt-4 border-t border-border/50">
+                <Button
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  className="px-6"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => handleSaveChanges()}
+                  className="px-6 bg-primary hover:bg-primary/90"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </PlainModal>
+    </div>
   );
-
-  return isMobile ? <MobileContent /> : <DesktopContent />;
 };
 
 export default EditModal;

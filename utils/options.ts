@@ -1,5 +1,4 @@
 export const STATUSES = [
-  { id: 0, name: "All" },
   { id: 1, name: "Watching" },
   { id: 2, name: "Completed" },
   { id: 3, name: "Dropped" },

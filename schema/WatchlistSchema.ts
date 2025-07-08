@@ -12,12 +12,21 @@ export const WatchlistSchema = z.object({
     "Watch Later",
   ]),
   userRating: z.number().min(1).max(10).optional().nullable(),
+  lastEpisodeId: z.number().optional().nullable(),
+  lastSeasonId: z.number().optional().nullable(),
+  globalEpisodeNo: z.number().optional().nullable(),
+  review: z.string().optional().nullable(),
   details: z.any().optional(),
 });
 
 export const WatchlistUpdateSchema = z.object({
   id: z.string().min(1),
-  status: z.enum(["Watching", "On-hold", "Dropped", "Completed"]),
+  status: z
+    .enum(["Watching", "On-hold", "Dropped", "Completed", "Watch Later"])
+    .optional(),
   userRating: z.number().min(1).max(10).optional().nullable(),
-  watchedEpisodes: z.number().int().min(1).optional().nullable(),
+  lastEpisodeId: z.number().optional().nullable(),
+  lastSeasonId: z.number().optional().nullable(),
+  globalEpisodeNo: z.number().optional().nullable(),
+  review: z.string().optional().nullable(),
 });

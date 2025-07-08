@@ -38,6 +38,7 @@ export default function DetailsPageClient({
 
   const [showFull, setShowFull] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   const trailerUrl = videos?.find((video: any) => video.type === "Trailer");
   const title = movie?.name || movie?.title;
@@ -48,7 +49,7 @@ export default function DetailsPageClient({
 
   useEffect(() => {
     checkWatchlist();
-  }, [session, movie?.id]);
+  }, [session, movie?.id, refresh]);
 
   const checkWatchlist = async () => {
     if (!session?.user.id) return;
@@ -202,7 +203,10 @@ export default function DetailsPageClient({
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={handleWatchlistToggle}
+                onClick={() => {
+                  handleWatchlistToggle();
+                  setRefresh(true);
+                }}
                 className={`${
                   isInWatchlist
                     ? "bg-red-600 hover:bg-red-700"

@@ -21,6 +21,8 @@ import { Toggle } from "@/components/ui/toggle";
 import { MTV } from "@/types/tmdb";
 import MovieCard from "@/components/MovieCard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import axios from "axios";
+import { toast } from "sonner";
 
 const Watchlist = () => {
   const { data: session } = useSession();
@@ -33,7 +35,7 @@ const Watchlist = () => {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [grid, setGrid] = useState(false);
   const isMobile = useIsMobile();
-
+  const statuses = [{ id: 0, name: "All" }, ...STATUSES];
   useEffect(() => {
     if (session?.user.id) fetchData();
   }, [session]);
@@ -104,7 +106,7 @@ const Watchlist = () => {
   const getProgressInfo = (movie: any) => {
     const isTV = !!movie.details.name;
     if (isTV) {
-      const watchedEpisodes = movie.watchedEpisodes || 0;
+      const watchedEpisodes = movie.globalEpisodeNo || 0;
       const totalEpisodes = movie.details.number_of_episodes || 0;
       const percent =
         totalEpisodes > 0 ? (watchedEpisodes / totalEpisodes) * 100 : 0;
@@ -123,17 +125,36 @@ const Watchlist = () => {
     }
   };
 
+  const handleUpdate = async (movie: any) => {
+    if (!session?.user) return;
+    console.log("jhdsc", movie);
+    const payload = {
+      id: movie._id,
+      lastEpisodeId: movie.lastEpisodeId + 1,
+      lastSeasonId: movie.lastSeasonId,
+      globalEpisodeNo: movie.globalEpisodeNo + 1,
+      status: movie.status,
+    };
+
+    try {
+      const res = await axios.put("/api/watchlist/update-status", payload);
+      fetchData();
+    } catch (err: any) {
+      console.error("API error", err);
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 text-white">
-      <div className="flex justify-between items-center mb-6 flex-col md:flex-row gap-4">
+    <div className="max-w-7xl mx-auto p-4 text-white">
+      <div className="flex justify-between items-center mb-6 gap-4 overflow-auto">
         <Tabs
-          className="w-full"
+          className="w-full lg:max-w-[620px] md:max-w-[420px]"
           defaultValue="All"
           onValueChange={setActiveTab}
         >
-          <div className="overflow-x-auto no-scrollbar">
+          <div className="overflow-x-auto no-scrollbar flex">
             <TabsList className="flex w-max bg-zinc-800">
-              {STATUSES.map((status) => (
+              {statuses.map((status) => (
                 <TabsTrigger
                   key={status.id}
                   value={status.name}
@@ -143,24 +164,24 @@ const Watchlist = () => {
                 </TabsTrigger>
               ))}
             </TabsList>
+            <Toggle
+              className="hidden lg:block ms-2"
+              size="lg"
+              pressed={grid}
+              onPressedChange={setGrid}
+            >
+              <Grid />
+            </Toggle>
           </div>
         </Tabs>
-        <Toggle
-          className="hidden sm:block"
-          size="lg"
-          pressed={grid}
-          onPressedChange={setGrid}
-        >
-          <Grid />
-        </Toggle>
-        <div className="flex flex-col shrink-0 md:flex-row items-center gap-4 w-full md:w-auto">
-          <div className="relative w-full md:w-auto">
+        <div className="flex flex-col shrink-0 md:flex-row items-center gap-4 w-full md:w-auto flex-1">
+          <div className="relative w-full md:w-auto hidden xl:block">
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-colors w-full md:w-auto"
             >
               <ArrowUpDown size={16} />
-              <span className="text-sm">
+              <span className="text-sm whitespace-nowrap">
                 Sort by {SORTOPTIONS.find((opt) => opt.value === sortBy)?.label}
               </span>
               <ChevronDown
@@ -202,7 +223,7 @@ const Watchlist = () => {
               </div>
             )}
           </div>
-          <div className="relative w-full md:w-64">
+          <div className="relative w-full hidden md:block">
             <Search
               className="absolute left-3 top-2.5 text-gray-400"
               size={16}
@@ -308,18 +329,19 @@ const Watchlist = () => {
                         </div>
                         <div className="col-span-1">
                           <span
-                            className={`text-xs px-2 py-1 rounded-full font-medium bg-white/10`}
+                            className={`text-xs px-2 py-1 whitespace-nowrap rounded-full font-medium bg-white/10`}
                           >
                             {movie.status}
                           </span>
                         </div>
                         <div className="col-span-1 flex items-center gap-1">
-                          <EditModal movie={movie} />
+                          <EditModal movie={movie} onSave={fetchData} />
                           {!movie.details.runtime && (
                             <Button
                               variant="outline"
                               size="sm"
                               className="gap-2"
+                              onClick={() => handleUpdate(movie)}
                             >
                               <Plus className="size-4" />
                             </Button>
@@ -336,7 +358,7 @@ const Watchlist = () => {
           <div className="lg:hidden space-y-0">
             {filtered.map((movie) => {
               const isTV = !!movie.details.name;
-              const watchedEpisodes = movie.watchedEpisodes || 0;
+              const watchedEpisodes = movie.globalEpisodeNo || 0;
               const totalEpisodes = movie.details.number_of_episodes || 0;
               const progressPercent =
                 isTV && totalEpisodes > 0
@@ -374,7 +396,7 @@ const Watchlist = () => {
                       <div>
                         <div className="w-full bg-zinc-700 rounded-full h-2 mb-2">
                           <div
-                            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                            className="bg-white/20 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>
@@ -404,9 +426,14 @@ const Watchlist = () => {
                       movie.details.runtime ? "justify-start" : "justify-around"
                     }`}
                   >
-                    <EditModal movie={movie} />
+                    <EditModal movie={movie} onSave={fetchData} />
                     {!movie.details.runtime && (
-                      <Button variant="outline" size="sm" className="gap-2">
+                      <Button
+                        onClick={() => handleUpdate(movie)}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
                         <Plus className="size-4" />
                       </Button>
                     )}

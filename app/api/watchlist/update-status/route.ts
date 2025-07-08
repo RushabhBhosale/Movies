@@ -15,11 +15,20 @@ export async function PUT(req: Request) {
 
     const updatePayload: Record<string, any> = {
       status: parsed.status,
+      ...(parsed.userRating !== undefined && { userRating: parsed.userRating }),
+      ...(parsed.globalEpisodeNo !== undefined && {
+        globalEpisodeNo: parsed.globalEpisodeNo,
+      }),
+      ...(parsed.lastSeasonId !== undefined && {
+        lastSeasonId: parsed.lastSeasonId,
+      }),
+      ...(parsed.lastEpisodeId !== undefined && {
+        lastEpisodeId: parsed.lastEpisodeId,
+      }),
+      ...(parsed.review !== undefined && {
+        review: parsed.review,
+      }),
     };
-
-    if (parsed.watchedEpisodes !== undefined) {
-      updatePayload.watchedEpisodes = parsed.watchedEpisodes;
-    }
 
     const updated = await collection.findOneAndUpdate(
       { _id: new ObjectId(parsed.id) },
@@ -51,6 +60,7 @@ export async function PUT(req: Request) {
         { status: 422 }
       );
     }
+
     return NextResponse.json(
       {
         error: `Server error: ${
