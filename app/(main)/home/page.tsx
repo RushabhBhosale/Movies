@@ -12,7 +12,7 @@ import {
   ArrowUpDown,
   Grid,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
 import EditModal from "@/components/EditModal";
 import { SORTOPTIONS, STATUSES } from "@/utils/options";
@@ -25,7 +25,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const Watchlist = () => {
-  const { data: session } = useSession();
+  const { user, loading } = useUserStore();
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("All");
@@ -37,8 +37,8 @@ const Watchlist = () => {
   const isMobile = useIsMobile();
   const statuses = [{ id: 0, name: "All" }, ...STATUSES];
   useEffect(() => {
-    if (session?.user.id) fetchData();
-  }, [session]);
+    if (user?._id) fetchData();
+  }, [user]);
 
   useEffect(() => {
     let data = [...watchlist];
@@ -91,7 +91,7 @@ const Watchlist = () => {
   }, [watchlist, activeTab, search, sortBy, sortOrder]);
 
   const fetchData = async () => {
-    const res = await fetch(`/api/watchlist?userId=${session?.user.id}`);
+    const res = await fetch(`/api/watchlist?userId=${user?._id}`);
     const data = await res.json();
     setWatchlist(data.watchlist || []);
   };
@@ -126,8 +126,6 @@ const Watchlist = () => {
   };
 
   const handleUpdate = async (movie: any) => {
-    if (!session?.user) return;
-    console.log("jhdsc", movie);
     const payload = {
       id: movie._id,
       lastEpisodeId: movie.lastEpisodeId + 1,
@@ -248,7 +246,12 @@ const Watchlist = () => {
           {grid && !isMobile ? (
             <div className="flex flex-wrap gap-4 my-4">
               {filtered.map((movie: any, index) => (
-                <MovieCard movie={movie.details} status={movie.status} />
+                <MovieCard
+                  key={index}
+                  movie={movie.details}
+                  eps={movie.globalEpisodeNo}
+                  status={movie.status}
+                />
               ))}
             </div>
           ) : (

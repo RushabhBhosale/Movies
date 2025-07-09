@@ -16,17 +16,7 @@ import {
   User2Icon,
 } from "lucide-react";
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
-import { redirect } from "next/navigation";
-
 export default async function LandingPage() {
-  const session = await getServerSession(authOptions);
-
-  if (session) {
-    redirect("/home");
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <nav className="border-b border-gray-700/50 backdrop-blur-3xl bg-gray-700/20 z-50 fixed top-0 w-full">

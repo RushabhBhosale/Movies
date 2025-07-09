@@ -16,11 +16,11 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
 
 const Navbar = () => {
-  const { data: session } = useSession();
+  const { user, loading } = useUserStore();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -64,10 +64,7 @@ const Navbar = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="h-8 w-8 cursor-pointer">
-              <AvatarImage src={session?.user?.image || ""} />
-              <AvatarFallback>
-                {session?.user?.name?.charAt(0) || "U"}
-              </AvatarFallback>
+              <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
@@ -77,9 +74,7 @@ const Navbar = () => {
             <DropdownMenuItem onClick={() => router.push("/watchlist")}>
               Stats
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
-              Logout
-            </DropdownMenuItem>
+            <DropdownMenuItem>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

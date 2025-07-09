@@ -7,7 +7,7 @@ import { Genre, MTV } from "../../../../types/tmdb";
 import { getGenreById } from "@/utils/getGenre";
 import TrailerButton from "@/components/trailerButton";
 import FormattedDate from "@/components/FormattedDate";
-import { useSession } from "next-auth/react";
+import { useUserStore } from "@/store/userStore";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -31,14 +31,13 @@ export default function DetailsPageClient({
   initialData,
   genres,
 }: DetailsPageClientProps) {
-  const { data: session } = useSession();
+  const { user, loading } = useUserStore();
   const { movie, credits, videos, reviews, recommendations, collection } =
     initialData;
   const imageBaseUrl = process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL;
 
   const [showFull, setShowFull] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const [refresh, setRefresh] = useState(false);
 
   const trailerUrl = videos?.find((video: any) => video.type === "Trailer");
   const title = movie?.name || movie?.title;
@@ -49,15 +48,15 @@ export default function DetailsPageClient({
 
   useEffect(() => {
     checkWatchlist();
-  }, [session, movie?.id, refresh]);
+  }, [user, movie?.id]);
 
   const checkWatchlist = async () => {
-    if (!session?.user.id) return;
+    if (!user?._id) return;
 
     try {
       const res = await axios.get("/api/watchlist/in-watchlist", {
         params: {
-          userId: session.user.id,
+          userId: user?._id,
           mediaId: movie.id,
           type: movie.name ? "tv" : "movie",
         },
@@ -90,7 +89,7 @@ export default function DetailsPageClient({
 
   const handleWatchlistToggle = async () => {
     const payload = {
-      userId: session?.user.id,
+      userId: user?._id,
       mediaId: movie.id,
       type: movie.name ? "tv" : "movie",
       status: "Watch Later",
@@ -98,6 +97,7 @@ export default function DetailsPageClient({
     try {
       const res = await axios.post("/api/watchlist/add", payload);
       toast.success(res.data.message);
+      checkWatchlist();
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -205,7 +205,6 @@ export default function DetailsPageClient({
               <button
                 onClick={() => {
                   handleWatchlistToggle();
-                  setRefresh(true);
                 }}
                 className={`${
                   isInWatchlist

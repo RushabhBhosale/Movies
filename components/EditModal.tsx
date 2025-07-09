@@ -1,6 +1,5 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MTV } from "@/types/tmdb";
-import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { Edit, Star, Calendar, Clock, Trophy } from "lucide-react";
@@ -13,7 +12,6 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
-  const { data: session } = useSession();
   const item: MTV = movie.details;
   const isMovie = !!item.title;
   const isMobile = useIsMobile();
@@ -146,8 +144,6 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
   );
 
   const handleSaveChanges = async () => {
-    if (!session?.user) return;
-
     const payload = {
       id: movie._id,
       status: selectedStatus,

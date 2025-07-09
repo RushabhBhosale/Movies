@@ -7,24 +7,25 @@ import { Progress } from "@/components/ui/progress";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { MTV } from "@/types/tmdb";
 import axios from "axios";
-import { useSession } from "next-auth/react";
+import { useUserStore } from "@/store/userStore";
 import { toast } from "sonner";
 
 interface MovieCardProps {
   movie: MTV;
   status?: string;
+  eps?: number;
 }
 
-const MovieCard = ({ movie, status = "" }: MovieCardProps) => {
+const MovieCard = ({ movie, status = "", eps = 0 }: MovieCardProps) => {
   const [isWatchlisted, setIsWatchlisted] = useState();
-  const { data: session } = useSession();
+  const { user, loading } = useUserStore();
 
   const handleWatchlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     const payload = {
-      userId: session?.user.id,
+      userId: user?._id,
       mediaId: movie.id,
       type: movie.name ? "tv" : "movie",
       status: "Watch Later",
@@ -43,7 +44,7 @@ const MovieCard = ({ movie, status = "" }: MovieCardProps) => {
     : movie?.first_air_date
     ? new Date(movie.first_air_date).getFullYear()
     : "N/A";
-  const watchedEpisodes = movie.watchedEpisodes;
+  const watchedEpisodes = eps;
   const isTvShow = !movie?.title && movie?.name;
   const episodes: any = movie?.number_of_episodes;
   const progressPercentage =

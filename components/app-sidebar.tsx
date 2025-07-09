@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSession } from "next-auth/react";
+import { useUserStore } from "@/store/userStore";
 import { usePathname } from "next/navigation";
 import {
   Sidebar,
@@ -42,13 +42,12 @@ const navItems = [
 export default function AppSidebar(
   props: React.ComponentProps<typeof Sidebar>
 ) {
-  const { data: session } = useSession();
+  const { user, loading }: any = useUserStore();
   const pathname = usePathname();
 
-  const user = {
-    name: session?.user?.name || "Guest",
-    email: session?.user?.email || "",
-    avatar: session?.user?.image || "",
+  const profile = {
+    name: user?.name || "Guest",
+    email: user?.email || "",
   };
 
   return (
@@ -86,7 +85,7 @@ export default function AppSidebar(
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser profile={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
