@@ -19,6 +19,7 @@ interface MovieCardProps {
 const MovieCard = ({ movie, status = "", eps = 0 }: MovieCardProps) => {
   const [isWatchlisted, setIsWatchlisted] = useState();
   const { user, loading } = useUserStore();
+  console.log("hgsika", movie);
 
   const handleWatchlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -92,19 +93,21 @@ const MovieCard = ({ movie, status = "", eps = 0 }: MovieCardProps) => {
               </div>
               <Progress
                 value={progressPercentage}
-                className="h-1.5 bg-white/20"
+                className="h-1.5 bg-zinc-700"
               />
             </div>
           )}
         </div>
       </Link>
 
-      <Badge
-        variant="secondary"
-        className="absolute top-3 right-3 text-xs bg-white text-black border-0 z-10"
-      >
-        {status}
-      </Badge>
+      {status && (
+        <Badge
+          variant="secondary"
+          className="absolute top-3 right-3 text-xs bg-white text-black border-0 z-10"
+        >
+          {status}
+        </Badge>
+      )}
 
       <Button
         variant="secondary"

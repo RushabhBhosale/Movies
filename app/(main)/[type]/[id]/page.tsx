@@ -37,6 +37,12 @@ export default async function DetailsPage({ params }: PageProps) {
     `/${type}/${id}?append_to_response=credits,videos,reviews,recommendations`
   );
 
+  if (movie.overview) {
+    await fetchTmdbData(
+      `/${type}/${id}?append_to_response=credits,videos,reviews,recommendations`
+    );
+  }
+
   const credits = movie.credits;
   const videos = movie.videos.results;
   const reviews = movie.reviews.results;

@@ -43,7 +43,7 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
 
   const getSortedSeasons = (seasons: any[]) => {
     return seasons
-      ?.filter((s) => s.season_number > 0)
+      ?.filter((s) => s.name !== "Specials")
       .sort((a, b) => a.season_number - b.season_number);
   };
 
@@ -128,7 +128,6 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
 
     const result = getSeasonAndEpisode(val, item.seasons);
     if (result) {
-      console.log("ghjdhjuscvsw", result);
       const season = getSortedSeasons(item.seasons).find(
         (s) => s.season_number === result.season_number
       );
@@ -306,19 +305,20 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
                       </select>
                     </div>
 
-                    <div className="space-y-2">
-                      <input
-                        type="number"
-                        min={1}
-                        value={globalEpNumber || ""}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          handleGlobalEpisodeChange(val);
-                        }}
-                        className="w-full border border-border/50 bg-background text-foreground rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                        placeholder="Enter episode number"
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      min={1}
+                      value={globalEpNumber || ""}
+                      max={item.number_of_episodes}
+                      onChange={(e) => {
+                        let val = Number(e.target.value);
+                        const max = item.number_of_episodes;
+                        if (val > max) val = max;
+                        handleGlobalEpisodeChange(val);
+                      }}
+                      className="w-full border border-border/50 bg-background text-foreground rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                      placeholder="Enter episode number"
+                    />
                   </div>
 
                   <div className="space-y-2">

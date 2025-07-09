@@ -24,7 +24,9 @@ export default async function LandingPage() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <PlayCircle className="h-8 w-8 text-indigo-300" />
-              <span className="text-2xl font-bold text-gray-100">WatchPro</span>
+              <span className="text-2xl font-bold text-gray-100">
+                CineTrack
+              </span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/auth/signin">
@@ -105,7 +107,7 @@ export default async function LandingPage() {
               </span>
             </h2>
             <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-              Stop juggling multiple apps and scattered notes. WatchPro brings
+              Stop juggling multiple apps and scattered notes. CineTrack brings
               all your viewing habits into one beautiful dashboard.
             </p>
           </div>
@@ -289,7 +291,7 @@ export default async function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <PlayCircle className="h-6 w-6 text-indigo-300" />
-              <span className="text-xl font-bold text-gray-100">WatchPro</span>
+              <span className="text-xl font-bold text-gray-100">CineTrack</span>
             </div>
             <div className="flex space-x-6 text-gray-500">
               <a href="#" className="hover:text-gray-300 transition-colors">
@@ -304,7 +306,7 @@ export default async function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-700/50 text-center text-gray-600">
-            <p>© 2025 WatchPro. All rights reserved. Powered by TMDB</p>
+            <p>© 2025 CineTrack. All rights reserved. Powered by TMDB</p>
           </div>
         </div>
       </footer>

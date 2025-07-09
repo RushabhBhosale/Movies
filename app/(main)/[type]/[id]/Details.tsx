@@ -46,6 +46,8 @@ export default function DetailsPageClient({
   const titleShrink = title?.length ? title.length * 0.05 : 0;
   const adjustedMax = Math.max(maxSize - titleShrink, minSize);
 
+  console.log("dcewfewew", initialData.collection);
+
   useEffect(() => {
     checkWatchlist();
   }, [user, movie?.id]);
@@ -208,7 +210,7 @@ export default function DetailsPageClient({
                 }}
                 className={`${
                   isInWatchlist
-                    ? "bg-red-600 hover:bg-red-700"
+                    ? "bg-secondary"
                     : "bg-white/10 hover:bg-white/20"
                 } text-white px-6 py-2 rounded-full border border-white/20 transition-colors duration-300 flex items-center justify-center gap-2`}
               >
@@ -448,7 +450,7 @@ export default function DetailsPageClient({
                   new Date(b.release_date).getTime()
               )
               .map((item: any) => (
-                <MovieCard key={item.id} movie={movie} />
+                <MovieCard key={item.id} movie={item} />
               ))}
           </div>
         </section>

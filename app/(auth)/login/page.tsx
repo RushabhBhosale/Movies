@@ -42,7 +42,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="max-w-md w-full mx-4 bg-gray-800 rounded-2xl shadow-lg p-8">
         <h1 className="text-2xl md:text-3xl font-bold text-center mb-8 text-white">
-          Welcome to WatchPro
+          Welcome to CineTrack
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">

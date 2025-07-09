@@ -1,9 +1,55 @@
 const apiKey = process.env.TMDB_API_KEY;
 const baseUrl = process.env.TMDB_BASE_URL;
 
+// Create a safe fallback object that won't break your components
+const createSafeFallback = (endpoint: string) => {
+  // Determine what type of data this endpoint expects
+  const isSearch = endpoint.includes("/search/");
+  const isMovie = endpoint.includes("/movie/");
+  const isTv = endpoint.includes("/tv/");
+  const isCredits = endpoint.includes("credits");
+  const isVideos = endpoint.includes("videos");
+  const isReviews = endpoint.includes("reviews");
+  const isRecommendations = endpoint.includes("recommendations");
+
+  // Base fallback object
+  const baseFallback = {
+    id: null,
+    title: "Unavailable",
+    name: "Unavailable",
+    overview: "Content unavailable",
+    poster_path: null,
+    backdrop_path: null,
+    release_date: null,
+    first_air_date: null,
+    vote_average: 0,
+    vote_count: 0,
+    runtime: 0,
+    genres: [],
+    credits: { cast: [], crew: [] },
+    videos: { results: [] },
+    reviews: { results: [] },
+    recommendations: { results: [] },
+    results: [],
+  };
+
+  if (isSearch) {
+    return { results: [], total_pages: 0, total_results: 0 };
+  }
+
+  return baseFallback;
+};
+
+// Enhanced error handling with graceful fallbacks
 export async function fetchTmdbData(endpoint: any, retries = 2) {
+  // Return safe fallback instead of throwing for missing config
   if (!endpoint || !apiKey || !baseUrl) {
-    throw new Error("Missing endpoint, API key, or base URL");
+    console.error("Missing TMDB configuration:", {
+      endpoint: !!endpoint,
+      apiKey: !!apiKey,
+      baseUrl: !!baseUrl,
+    });
+    return createSafeFallback(endpoint);
   }
 
   const separator = endpoint.includes("?") ? "&" : "?";
@@ -78,13 +124,19 @@ export async function fetchTmdbData(endpoint: any, retries = 2) {
     }
   }
 
-  throw new Error(lastError?.message || "TMDB request failed");
+  // Return safe fallback instead of throwing - maintains API contract
+  console.error(
+    "TMDB request failed after all retries:",
+    lastError?.message || "Unknown error"
+  );
+  return createSafeFallback(endpoint);
 }
 
 export async function getMediaDetails(mediaId: any, type: any) {
   try {
     const data = await fetchTmdbData(`/${type}/${mediaId}?language=en-US`);
 
+    // Data is now always safe, no need to check for null
     let runtime = 0;
     if (type === "movie") {
       runtime = data.runtime || 0;
@@ -111,28 +163,34 @@ export async function getMediaDetails(mediaId: any, type: any) {
 export async function getDetailedTVRuntime(mediaId: any) {
   try {
     const mainData = await fetchTmdbData(`/tv/${mediaId}?language=en-US`);
+
+    // Data is now always safe, no need to check for null
     let totalRuntime = 0;
     const seasons = mainData.number_of_seasons || 0;
 
-    const seasonData = await Promise.all(
-      Array.from({ length: seasons }, (_, i) =>
-        fetchTmdbData(`/tv/${mediaId}/season/${i + 1}?language=en-US`).catch(
-          (err) => {
-            console.warn(`Season ${i + 1} failed`, err);
-            return null;
-          }
+    // Only proceed if we have seasons
+    if (seasons > 0) {
+      const seasonData = await Promise.all(
+        Array.from({ length: seasons }, (_, i) =>
+          fetchTmdbData(`/tv/${mediaId}/season/${i + 1}?language=en-US`).catch(
+            (err) => {
+              console.warn(`Season ${i + 1} failed`, err);
+              return createSafeFallback(`/tv/${mediaId}/season/${i + 1}`);
+            }
+          )
         )
-      )
-    );
+      );
 
-    for (const season of seasonData) {
-      if (season?.episodes?.length) {
-        for (const ep of season.episodes) {
-          totalRuntime += ep.runtime || 0;
+      for (const season of seasonData) {
+        if (season?.episodes?.length) {
+          for (const ep of season.episodes) {
+            totalRuntime += ep.runtime || 0;
+          }
         }
       }
     }
 
+    // Fallback calculation if no episode data
     if (totalRuntime === 0) {
       const epTimes = mainData.episode_run_time || [];
       const avg = epTimes.length
@@ -148,6 +206,23 @@ export async function getDetailedTVRuntime(mediaId: any) {
     };
   } catch (err) {
     console.error("getDetailedTVRuntime error:", err);
+    // Fallback to basic method
     return getMediaDetails(mediaId, "tv");
+  }
+}
+
+// Helper function to safely use TMDB data in server components
+export async function safelyFetchTmdb<T>(
+  tmdbFunction: () => Promise<T>,
+  fallbackValue: T,
+  onError?: (error: any) => void
+): Promise<T> {
+  try {
+    const result = await tmdbFunction();
+    return result || fallbackValue;
+  } catch (error) {
+    console.error("TMDB operation failed:", error);
+    if (onError) onError(error);
+    return fallbackValue;
   }
 }
