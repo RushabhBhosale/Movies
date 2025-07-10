@@ -5,6 +5,7 @@ import {
   Heart,
   Home,
   Search,
+  Upload,
   User,
 } from "lucide-react";
 
@@ -30,7 +31,8 @@ export const NAVITEMS = [
       { title: "Stats", url: "/stats", icon: ChartNoAxesCombined },
       { title: "Watchlist", url: "/watchlist", icon: BookmarkIcon },
       { title: "Favorites", url: "/favorites", icon: Heart },
-      { title: "Search", url: "/browse", icon: Search },
+      { title: "Search", url: "/browse", icon: Search, mobile: true },
+      { title: "Bulk Upload", url: "/bulk-upload", icon: Upload },
       { title: "Profile", url: "/profile", icon: User },
     ],
   },

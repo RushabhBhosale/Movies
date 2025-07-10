@@ -112,14 +112,14 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <Link href="/forgot-password">Forgot your password?</Link>
+          <Link href="/#">Forgot your password?</Link>
         </div>
 
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-400">
             Don't have an account?{" "}
-            <Link className="text-primary-foreground" href="/signup">
-              Sign up
+            <Link className="text-primary-foreground" href="/register">
+              Register
             </Link>
           </p>
         </div>

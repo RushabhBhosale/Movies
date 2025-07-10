@@ -19,10 +19,11 @@ import { SORTOPTIONS, STATUSES } from "@/utils/options";
 import MovieCard from "@/components/MovieCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import axios from "axios";
+import Link from "next/link";
 
 const Watchlist = ({ initialData }: any) => {
   const { user, loading } = useUserStore();
-  const [watchlist, setWatchlist] = useState<any[]>(initialData);
+  const [watchlist, setWatchlist] = useState<any[]>(initialData ?? []);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("All");
   const [search, setSearch] = useState("");
@@ -243,10 +244,7 @@ const Watchlist = ({ initialData }: any) => {
           </div>
 
           <div className="relative w-full hidden md:block">
-            <Search
-              className="absolute left-3 top-2.5 text-gray-400"
-              size={16}
-            />
+            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
             <input
               type="text"
               value={search}
@@ -361,25 +359,31 @@ const Watchlist = ({ initialData }: any) => {
                   return (
                     <div
                       key={movie._id}
-                      className="px-6 py-4 hover:bg-zinc-800 transition-colors duration-200"
+                      className="px-6 py-4 transition-colors duration-200"
                     >
                       <div className="grid grid-cols-12 gap-4 items-center">
                         <div className="col-span-4 flex items-center gap-3">
-                          <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                            <img
-                              src={`https://image.tmdb.org/t/p/w92${movie.details.poster_path}`}
-                              alt="poster"
-                              className="w-12 h-16 rounded-md object-cover flex-shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <h3 className="font-semibold text-white truncate">
-                                {movie.details.title || movie.details.name}
-                              </h3>
-                              <p className="text-xs text-gray-400 truncate max-w-52">
-                                {movie.details.overview}
-                              </p>
+                          <Link
+                            href={`/${movie.details.title ? "movie" : "tv"}/${
+                              movie.details.id
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={`https://image.tmdb.org/t/p/w92${movie.details.poster_path}`}
+                                alt="poster"
+                                className="w-12 h-16 rounded-md object-cover flex-shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <h3 className="font-semibold text-white truncate">
+                                  {movie.details.title || movie.details.name}
+                                </h3>
+                                <p className="text-xs text-gray-400 truncate max-w-52">
+                                  {movie.details.overview}
+                                </p>
+                              </div>
                             </div>
-                          </div>
+                          </Link>
                         </div>
                         <div className="col-span-2 text-sm text-gray-300 truncate">
                           {movie.details.genres

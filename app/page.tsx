@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  PlayCircle,
   BookmarkPlus,
   Star,
   TrendingUp,
@@ -13,7 +12,6 @@ import {
   Eye,
   Sparkles,
   ArrowRight,
-  User2Icon,
   Film,
 } from "lucide-react";
 import Link from "next/link";
@@ -155,10 +153,7 @@ export default function LandingPage() {
                 </p>
                 <div className="flex space-x-1 mt-3">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className="h-4 w-4 fill-chart-3 text-chart-3"
-                    />
+                    <Star className="h-4 w-4 fill-chart-3 text-chart-3" />
                   ))}
                 </div>
               </CardContent>
@@ -270,7 +265,7 @@ export default function LandingPage() {
                       className="h-6 w-6 fill-chart-3 text-chart-3"
                     />
                   ))}
-                  <Star className="h-6 w-6 text-muted" />
+                  <Star className="h-6 w-6 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>

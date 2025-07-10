@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { LoginSchema } from "@/schema/AuthSchema";
-import { getUserCollection } from "@/lib/db";
+import { getUserCollection } from "@/lib/db/db";
 import { verifyPassword } from "@/lib/hash";
 import { signToken } from "@/lib/jwt";
 

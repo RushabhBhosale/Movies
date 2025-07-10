@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
+import { logoutUser } from "@/utils/auth";
 
 const Navbar = () => {
   const { user, loading } = useUserStore();
@@ -74,7 +75,7 @@ const Navbar = () => {
             <DropdownMenuItem onClick={() => router.push("/watchlist")}>
               Stats
             </DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={logoutUser}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

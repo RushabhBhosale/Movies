@@ -5,6 +5,7 @@ import axios from "axios";
 import { RegisterSchema } from "@/schema/AuthSchema";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,11 +27,13 @@ export default function RegisterPage() {
     }
 
     try {
-      await axios.post("/api/auth/register", form);
+      const res = await axios.post("/api/auth/register", form);
+      console.log("hjcds", res);
       router.push("/login");
-    } catch {
-      setError("Registration failed");
+    } catch (err: any) {
       setIsLoading(false);
+      toast.error(err.response.data.error);
+      setError(err.response.data.error);
     }
   };
 
@@ -102,6 +105,7 @@ export default function RegisterPage() {
                 required
               />
               <Button
+                type="button"
                 variant="ghost"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2"

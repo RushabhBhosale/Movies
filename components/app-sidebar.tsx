@@ -51,15 +51,18 @@ export default function AppSidebar(
             {group.items.map((item) => {
               const isActive = pathname.startsWith(item.url);
               return (
-                <SidebarMenuItem className="py-1" key={item.title}>
+                <SidebarMenuItem
+                  className={`py-1 ${item.mobile ? "md:hidden" : ""}`}
+                  key={item.title}
+                >
                   <SidebarMenuButton asChild className="p-5">
                     <a
                       href={item.url}
                       className={`flex items-center gap-2 px-2 rounded-md ${
                         isActive
-                          ? "bg-sidebar-accent text-white"
+                          ? "bg-muted text-white"
                           : "text-muted-foreground"
-                      }`}
+                      } `}
                     >
                       <item.icon className={`w-4 h-4 mt-0.5`} />
                       {item.title}

@@ -1,6 +1,5 @@
 "use client";
 import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
-import { fetchTmdbData } from "@/hooks/useTmdb";
 import { MTV } from "@/types/tmdb";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
@@ -109,7 +108,7 @@ const Browse = () => {
     };
   }, []);
   return (
-    <div className="p-6 overflow-hidden fixed inset-0 bg-[#121212] z-40">
+    <div className="p-6 overflow-hidden inset-0 bg-[#121212] z-40">
       <h1 className="text-2xl font-semibold text-white mb-4 tracking-wide">
         Looking for something to watch?
       </h1>
