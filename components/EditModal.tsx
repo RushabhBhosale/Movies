@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
   const item: MTV = movie.details;
-  const isMovie = !!item.title;
+  const isMovie = !!item?.title;
   const isMobile = useIsMobile();
   const [rating, setRating] = useState(movie.userRating);
   const [open, setOpen] = useState(false);
@@ -30,11 +30,11 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
 
     setSelectedSeasonId(movie.lastSeasonId.toString());
     setSelectedEpisode(movie.lastEpisodeId);
-    const season = getSortedSeasons(item.seasons).find(
+    const season = getSortedSeasons(item?.seasons).find(
       (s) => s.id.toString() === movie.lastSeasonId.toString()
     );
     const global = getGlobalEpisodeNumber(
-      item.seasons,
+      item?.seasons,
       season?.season_number || 1,
       movie.lastEpisodeId
     );
@@ -90,13 +90,13 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
     setSelectedSeasonId(id);
     setSelectedEpisode(1);
 
-    const season = getSortedSeasons(item.seasons).find(
+    const season = getSortedSeasons(item?.seasons).find(
       (s) => s.id.toString() === id
     );
 
     if (season) {
       const global = getGlobalEpisodeNumber(
-        item.seasons,
+        item?.seasons,
         season.season_number,
         1
       );
@@ -108,14 +108,14 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
     const epNum = Number(ep);
     setSelectedEpisode(epNum);
 
-    const selectedSeason = getSortedSeasons(item.seasons)?.find(
+    const selectedSeason = getSortedSeasons(item?.seasons)?.find(
       (season) => season.id.toString() === selectedSeasonId
     );
     const selectedSeasonNumber = selectedSeason?.season_number;
 
     if (selectedSeasonNumber != null) {
       const global = getGlobalEpisodeNumber(
-        item.seasons,
+        item?.seasons,
         selectedSeasonNumber,
         epNum
       );
@@ -126,9 +126,9 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
   const handleGlobalEpisodeChange = (val: number) => {
     setGlobalEpNumber(val);
 
-    const result = getSeasonAndEpisode(val, item.seasons);
+    const result = getSeasonAndEpisode(val, item?.seasons);
     if (result) {
-      const season = getSortedSeasons(item.seasons).find(
+      const season = getSortedSeasons(item?.seasons).find(
         (s) => s.season_number === result.season_number
       );
       if (season) {
@@ -138,7 +138,7 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
     }
   };
 
-  const selectedSeasonData = getSortedSeasons(item.seasons)?.find(
+  const selectedSeasonData = getSortedSeasons(item?.seasons)?.find(
     (season) => season.id.toString() === selectedSeasonId
   );
 
@@ -189,9 +189,9 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
       <PlainModal size="lg" isOpen={open} onClose={() => setOpen(false)}>
         <div className="w-full !max-w-[900px] max-h-[90vh] h-[90vh] sm:h-[95vh] flex flex-col rounded-2xl bg-background border border-border/50 shadow-2xl overflow-hidden">
           <div className="relative h-32 flex-shrink-0 overflow-hidden">
-            {item.backdrop_path && (
+            {item?.backdrop_path && (
               <Image
-                src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/original/${item.backdrop_path}`}
+                src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/original/${item?.backdrop_path}`}
                 alt=""
                 fill
                 className="object-cover"
@@ -201,23 +201,23 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
             <div className="absolute bottom-0 left-0 right-0 p-8">
               <div className="text-white">
                 <h1 className="text-3xl font-bold mb-2">
-                  {item.name || item.title}
+                  {item?.name || item?.title}
                 </h1>
                 <div className="flex items-center gap-4 text-sm text-white/80">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {moment(item.first_air_date || item.release_date).year()}
+                    {moment(item?.first_air_date || item?.release_date).year()}
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
                     {isMovie
-                      ? `${item.runtime} mins`
-                      : `${item.number_of_episodes} eps`}
+                      ? `${item?.runtime} mins`
+                      : `${item?.number_of_episodes} eps`}
                   </div>
-                  {item.vote_average && (
+                  {item?.vote_average && (
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      {item.vote_average.toFixed(1)}
+                      {item?.vote_average.toFixed(1)}
                     </div>
                   )}
                 </div>
@@ -249,8 +249,8 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
                   Overview
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  {item.overview.slice(0, isMobile ? 100 : 300)}
-                  {item.overview.length > 300 && "..."}
+                  {item?.overview?.slice(0, isMobile ? 100 : 300)}
+                  {item?.overview?.length > 300 && "..."}
                 </p>
               </div>
 
@@ -297,7 +297,7 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
                         className="w-full border border-border/50 bg-background text-foreground rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                       >
                         <option value="none">Choose Season</option>
-                        {getSortedSeasons(item.seasons)?.map((season) => (
+                        {getSortedSeasons(item?.seasons)?.map((season) => (
                           <option key={season.id} value={season.id}>
                             {season.name}
                           </option>
@@ -309,10 +309,10 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
                       type="number"
                       min={1}
                       value={globalEpNumber || ""}
-                      max={item.number_of_episodes}
+                      max={item?.number_of_episodes}
                       onChange={(e) => {
                         let val = Number(e.target.value);
-                        const max = item.number_of_episodes;
+                        const max = item?.number_of_episodes;
                         if (val > max) val = max;
                         handleGlobalEpisodeChange(val);
                       }}

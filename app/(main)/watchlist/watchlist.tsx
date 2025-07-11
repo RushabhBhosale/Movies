@@ -98,10 +98,10 @@ const Watchlist = ({ initialData }: any) => {
   };
 
   const getProgressInfo = (movie: any) => {
-    const isTV = !!movie.details.name;
+    const isTV = !!movie?.details.name;
     if (isTV) {
-      const watchedEpisodes = movie.globalEpisodeNo || 0;
-      const totalEpisodes = movie.details.number_of_episodes || 0;
+      const watchedEpisodes = movie?.globalEpisodeNo || 0;
+      const totalEpisodes = movie?.details.number_of_episodes || 0;
       const percent =
         totalEpisodes > 0 ? (watchedEpisodes / totalEpisodes) * 100 : 0;
       return {
@@ -112,7 +112,7 @@ const Watchlist = ({ initialData }: any) => {
       };
     } else {
       return {
-        text: formatRuntime(movie.details.runtime),
+        text: formatRuntime(movie?.details.runtime),
         icon: <Clock size={14} className="text-accent-foreground" />,
         showProgress: false,
       };
@@ -121,26 +121,28 @@ const Watchlist = ({ initialData }: any) => {
 
   const handleUpdate = async (movie: any) => {
     const isLastEpisode =
-      movie.globalEpisodeNo >= movie.details.number_of_episodes;
+      movie?.globalEpisodeNo >= movie?.details.number_of_episodes;
 
-    const currentSeason = movie.details.seasons?.find(
-      (s: any) => s.id === movie.lastSeasonId
+    const currentSeason = movie?.details.seasons?.find(
+      (s: any) => s.id === movie?.lastSeasonId
     );
 
-    if (movie.globalEpisodeNo >= movie.details.number_of_episodes - 1) {
+    if (movie?.globalEpisodeNo >= movie?.details.number_of_episodes - 1) {
       movie.status = "Completed";
     }
 
     const payload = {
-      id: movie._id,
+      id: movie?._id,
       lastEpisodeId: isLastEpisode
-        ? movie.lastEpisodeId
-        : movie.lastEpisodeId + 1,
-      lastSeasonId: currentSeason ? movie.lastSeasonId : movie.lastSeasonId + 1,
+        ? movie?.lastEpisodeId
+        : movie?.lastEpisodeId + 1,
+      lastSeasonId: currentSeason
+        ? movie?.lastSeasonId
+        : movie?.lastSeasonId + 1,
       globalEpisodeNo: isLastEpisode
-        ? movie.globalEpisodeNo
-        : movie.globalEpisodeNo + 1,
-      status: movie.status,
+        ? movie?.globalEpisodeNo
+        : movie?.globalEpisodeNo + 1,
+      status: movie?.status,
     };
 
     try {
@@ -157,7 +159,7 @@ const Watchlist = ({ initialData }: any) => {
     <div className="max-w-7xl mx-auto p-4 text-white bg-zinc-900 min-h-screen">
       <div className="flex justify-between items-center mb-6 gap-4">
         <Tabs
-          className="w-full lg:max-w-[620px] md:max-w-[420px]"
+          className="w-full xl:max-w[550px] lg:max-w-[420px] md:max-w-[420px]"
           defaultValue="All"
           onValueChange={setActiveTab}
         >
@@ -174,10 +176,74 @@ const Watchlist = ({ initialData }: any) => {
                       : "hover:bg-zinc-700"
                   }`}
                 >
-                  {status.name}
+                  {status.name} (
+                  {status.name === "All"
+                    ? watchlist.length
+                    : watchlist.filter((w) => w.status === status.name).length}
+                  )
                 </TabsTrigger>
               ))}
             </TabsList>
+          </div>
+        </Tabs>
+
+        <div className="flex shrink-0 md:flex-row items-center gap-4 w-full md:w-auto flex-1 overflow-visible">
+          <div className="flex">
+            <div
+              className="relative w-full md:w-auto hidden lg:block"
+              ref={dropdownRef}
+            >
+              <button
+                onClick={() => setShowSortDropdown(!showSortDropdown)}
+                className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-colors w-full md:w-auto min-w-max"
+              >
+                <ArrowUpDown size={16} />
+                <span className="text-sm whitespace-nowrap">
+                  Sort by{" "}
+                  {SORTOPTIONS.find((opt) => opt.value === sortBy)?.label}
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform ${
+                    showSortDropdown ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {showSortDropdown && (
+                <div className="absolute z-[9999] top-full mt-2 right-0 bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl min-w-48 overflow-hidden">
+                  <div className="py-1">
+                    {SORTOPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setSortBy(option.value);
+                          setShowSortDropdown(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors ${
+                          sortBy === option.value
+                            ? "bg-zinc-700 text-white"
+                            : "text-gray-300"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                    <div className="border-t border-zinc-700 my-1" />
+                    <button
+                      onClick={() => {
+                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                        setShowSortDropdown(false);
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors text-gray-300"
+                    >
+                      {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Button
               onClick={() => setGrid(!grid)}
               variant="outline"
@@ -185,62 +251,6 @@ const Watchlist = ({ initialData }: any) => {
             >
               {!grid ? <Grid /> : <List />}
             </Button>
-          </div>
-        </Tabs>
-
-        <div className="flex flex-col shrink-0 md:flex-row items-center gap-4 w-full md:w-auto flex-1 overflow-visible">
-          <div
-            className="relative w-full md:w-auto hidden md:block"
-            ref={dropdownRef}
-          >
-            <button
-              onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-colors w-full md:w-auto min-w-max"
-            >
-              <ArrowUpDown size={16} />
-              <span className="text-sm whitespace-nowrap">
-                Sort by {SORTOPTIONS.find((opt) => opt.value === sortBy)?.label}
-              </span>
-              <ChevronDown
-                size={16}
-                className={`transition-transform ${
-                  showSortDropdown ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {showSortDropdown && (
-              <div className="absolute z-[9999] top-full mt-2 right-0 bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl min-w-48 overflow-hidden">
-                <div className="py-1">
-                  {SORTOPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setSortBy(option.value);
-                        setShowSortDropdown(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors ${
-                        sortBy === option.value
-                          ? "bg-zinc-700 text-white"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                  <div className="border-t border-zinc-700 my-1" />
-                  <button
-                    onClick={() => {
-                      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                      setShowSortDropdown(false);
-                    }}
-                    className="w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors text-gray-300"
-                  >
-                    {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="relative w-full hidden md:block">
@@ -329,13 +339,13 @@ const Watchlist = ({ initialData }: any) => {
       ) : (
         <>
           {grid && !isMobile ? (
-            <div className="flex flex-wrap gap-4 my-4">
+            <div className="flex flex-wrap justify-evenly gap-4 my-4">
               {filtered.map((movie, index) => (
                 <MovieCard
                   key={index}
-                  movie={movie.details}
-                  eps={movie.globalEpisodeNo}
-                  status={movie.status}
+                  movie={movie?.details}
+                  eps={movie?.globalEpisodeNo}
+                  status={movie?.status}
                 />
               ))}
             </div>
@@ -358,46 +368,46 @@ const Watchlist = ({ initialData }: any) => {
                   const progressInfo = getProgressInfo(movie);
                   return (
                     <div
-                      key={movie._id}
+                      key={movie?._id}
                       className="px-6 py-4 transition-colors duration-200"
                     >
                       <div className="grid grid-cols-12 gap-4 items-center">
                         <div className="col-span-4 flex items-center gap-3">
                           <Link
-                            href={`/${movie.details.title ? "movie" : "tv"}/${
-                              movie.details.id
+                            href={`/${movie?.details.title ? "movie" : "tv"}/${
+                              movie?.details.id
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <img
-                                src={`https://image.tmdb.org/t/p/w92${movie.details.poster_path}`}
+                                src={`https://image.tmdb.org/t/p/w92${movie?.details.poster_path}`}
                                 alt="poster"
                                 className="w-12 h-16 rounded-md object-cover flex-shrink-0"
                               />
                               <div className="min-w-0">
                                 <h3 className="font-semibold text-white truncate">
-                                  {movie.details.title || movie.details.name}
+                                  {movie?.details.title || movie?.details.name}
                                 </h3>
                                 <p className="text-xs text-gray-400 truncate max-w-52">
-                                  {movie.details.overview}
+                                  {movie?.details.overview}
                                 </p>
                               </div>
                             </div>
                           </Link>
                         </div>
                         <div className="col-span-2 text-sm text-gray-300 truncate">
-                          {movie.details.genres
+                          {movie?.details.genres
                             ?.slice(0, 2)
                             .map((g: any) => g.name)
                             .join(", ") || "N/A"}
                         </div>
                         <div className="col-span-1 flex items-center gap-1 text-sm text-gray-300">
                           <Star className="text-yellow-400" size={14} />
-                          {movie.details.vote_average?.toFixed(1) || "N/A"}
+                          {movie?.details.vote_average?.toFixed(1) || "N/A"}
                         </div>
                         <div className="col-span-1 text-sm text-gray-300">
-                          {movie.details.release_date?.slice(0, 4) ||
-                            movie.details.first_air_date?.slice(0, 4) ||
+                          {movie?.details.release_date?.slice(0, 4) ||
+                            movie?.details.first_air_date?.slice(0, 4) ||
                             "N/A"}
                         </div>
                         <div className="col-span-2 flex flex-col">
@@ -416,12 +426,12 @@ const Watchlist = ({ initialData }: any) => {
                         </div>
                         <div className="col-span-1">
                           <span className="text-xs px-2 py-1 whitespace-nowrap rounded-full font-medium bg-white/10">
-                            {movie.status}
+                            {movie?.status}
                           </span>
                         </div>
                         <div className="col-span-1 flex items-center gap-1">
                           <EditModal movie={movie} onSave={fetchData} />
-                          {!movie.details.runtime && (
+                          {!movie?.details.runtime && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -442,9 +452,9 @@ const Watchlist = ({ initialData }: any) => {
 
           <div className="lg:hidden space-y-0">
             {filtered.map((movie) => {
-              const isTV = !!movie.details.name;
-              const watchedEpisodes = movie.globalEpisodeNo || 0;
-              const totalEpisodes = movie.details.number_of_episodes || 0;
+              const isTV = !!movie?.details.name;
+              const watchedEpisodes = movie?.globalEpisodeNo || 0;
+              const totalEpisodes = movie?.details.number_of_episodes || 0;
               const progressPercent =
                 isTV && totalEpisodes > 0
                   ? (watchedEpisodes / totalEpisodes) * 100
@@ -452,12 +462,12 @@ const Watchlist = ({ initialData }: any) => {
 
               return (
                 <div
-                  key={movie._id}
+                  key={movie?._id}
                   className="flex gap-3 my-4 p-4 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors cursor-pointer"
                 >
                   <div className="flex-shrink-0">
                     <img
-                      src={`https://image.tmdb.org/t/p/w92${movie.details.poster_path}`}
+                      src={`https://image.tmdb.org/t/p/w92${movie?.details.poster_path}`}
                       alt="poster"
                       className="w-16 h-24 rounded-md object-cover"
                     />
@@ -468,12 +478,12 @@ const Watchlist = ({ initialData }: any) => {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 min-w-0 pr-2">
                           <h3 className="font-medium text-white text-sm leading-tight mb-1">
-                            {movie.details.title || movie.details.name}
+                            {movie?.details.title || movie?.details.name}
                           </h3>
                           <p className="text-xs text-gray-400">
                             {isTV ? "TV" : "Movie"},{" "}
-                            {movie.details.release_date?.slice(0, 4) ||
-                              movie.details.first_air_date?.slice(0, 4) ||
+                            {movie?.details.release_date?.slice(0, 4) ||
+                              movie?.details.first_air_date?.slice(0, 4) ||
                               "N/A"}
                           </p>
                         </div>
@@ -489,7 +499,7 @@ const Watchlist = ({ initialData }: any) => {
                           <div className="flex items-center gap-1">
                             <Star className="text-yellow-400" size={14} />
                             <span className="text-sm text-gray-300">
-                              {movie.details.vote_average?.toFixed(1) || "N/A"}
+                              {movie?.details.vote_average?.toFixed(1) || "N/A"}
                             </span>
                           </div>
 
@@ -499,7 +509,7 @@ const Watchlist = ({ initialData }: any) => {
                             </span>
                           ) : (
                             <span className="text-sm text-gray-300">
-                              {formatRuntime(movie.details.runtime)}
+                              {formatRuntime(movie?.details.runtime)}
                             </span>
                           )}
                         </div>
@@ -508,7 +518,7 @@ const Watchlist = ({ initialData }: any) => {
                   </div>
                   <div className="flex flex-col justify-start gap-2">
                     <EditModal movie={movie} onSave={fetchData} />
-                    {!movie.details.runtime && (
+                    {!movie?.details.runtime && (
                       <Button
                         onClick={() => handleUpdate(movie)}
                         variant="outline"
