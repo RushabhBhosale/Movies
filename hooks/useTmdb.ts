@@ -5,12 +5,6 @@ const baseUrl = process.env.TMDB_BASE_URL;
 const createSafeFallback = (endpoint: string) => {
   // Determine what type of data this endpoint expects
   const isSearch = endpoint.includes("/search/");
-  const isMovie = endpoint.includes("/movie/");
-  const isTv = endpoint.includes("/tv/");
-  const isCredits = endpoint.includes("credits");
-  const isVideos = endpoint.includes("videos");
-  const isReviews = endpoint.includes("reviews");
-  const isRecommendations = endpoint.includes("recommendations");
 
   // Base fallback object
   const baseFallback = {

@@ -152,19 +152,16 @@
   }
 }
 
-/* Ultra-subtle scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   background-color: transparent;
   border-radius: 4px;
   height: 12px;
-  visibility: hidden;
 }
 
 ::-webkit-scrollbar-thumb {
   width: 6px;
   height: auto;
-  visibility: hidden;
   border-radius: 4px;
   background-color: oklch(0.3 0.01 240 / 0.2);
   transition: background-color 0.2s ease;

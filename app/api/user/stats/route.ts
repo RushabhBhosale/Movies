@@ -77,7 +77,7 @@ export async function GET(req: Request) {
             watching: statusCount["Watching"] || 0,
             completed: statusCount["Completed"] || 0,
             dropped: statusCount["Dropped"] || 0,
-            onHold: statusCount["On-Hold"] || 0,
+            onHold: statusCount["On-hold"] || 0,
           },
           totalHoursWatched: Math.round(totalHours * 10) / 10,
           totalMinutesWatched: Math.round(totalMinutes),

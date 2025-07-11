@@ -37,3 +37,5 @@ export const NAVITEMS = [
     ],
   },
 ];
+
+export const imageBaseUrl = process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL;

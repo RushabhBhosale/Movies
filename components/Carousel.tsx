@@ -10,6 +10,7 @@ import { MTV } from "@/types/tmdb";
 import { getGenreById } from "@/utils/getGenre";
 import { BookmarkIcon } from "lucide-react";
 import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 
 interface CarouselInterface {
   tv: MTV[];
@@ -17,11 +18,13 @@ interface CarouselInterface {
 }
 
 const Carousel = ({ tv, genres }: CarouselInterface) => {
+  const router = useRouter();
   return (
     <Swiper
       slidesPerView={1}
       spaceBetween={30}
       loop={true}
+      autoplay={true}
       pagination={{
         clickable: true,
       }}
@@ -29,33 +32,39 @@ const Carousel = ({ tv, genres }: CarouselInterface) => {
       className="mySwiper w-full h-[28rem] rounded-xl shadow-xl/10"
     >
       {tv &&
-        tv.map((movie, index) => (
-          <SwiperSlide className="slides w-full relative mb-10" key={index}>
+        tv?.map((movie, index) => (
+          <SwiperSlide
+            onDoubleClick={() =>
+              router.push(`/${movie?.title ? "movie" : "tv"}/${movie?.id}`)
+            }
+            className="slides w-full relative mb-10"
+            key={index}
+          >
             <Image
               alt="backdrop"
               fill
               className="object-cover z-10"
-              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/original/${movie.backdrop_path}`}
+              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_BASE_URL}/original/${movie?.backdrop_path}`}
             />
             <div className="absolute z-20 w-full h-full bg-black opacity-40"></div>
             <div className="absolute z-30 w-full h-full flex flex-col sm:justify-center justify-end px-6 sm:px-16">
               <h3 className="sm:text-5xl drop-shadow-lg text-3xl mb-1 text-white font-bold">
-                {movie.name || movie.title}
+                {movie?.name || movie?.title}
               </h3>
               <div className="flex gap-6">
                 <p className="text-gray-200 text-lg font-bold my-1 sm:my-4">
-                  {movie.first_air_date || movie.release_date
+                  {movie?.first_air_date || movie?.release_date
                     ? new Date(
-                        movie.first_air_date || movie.release_date
+                        movie?.first_air_date || movie?.release_date
                       ).getFullYear()
                     : "N/A"}
                 </p>
                 <p className=" text-white text-sm font-bold my-1 sm:my-4 px-2 py-1 rounded-sm bg-[#313036e7] bg-opacity-85">
-                  {movie.vote_average.toFixed(1)}
+                  {movie?.vote_average.toFixed(1)}
                 </p>
               </div>
               <div className="mb-3">
-                {movie.genre_ids.map((genre: number, index: number) => (
+                {movie?.genre_ids.map((genre: number, index: number) => (
                   <span
                     className="mx-1 text-xs font-semibold text-white"
                     key={index}
@@ -66,24 +75,21 @@ const Carousel = ({ tv, genres }: CarouselInterface) => {
               </div>
               <div className="sm:w-2/4">
                 <div className="hidden sm:block">
-                  {movie.overview.slice(0, 200)}...
+                  {movie?.overview.slice(0, 200)}...
                 </div>
                 <div className="sm:hidden text-xs">
-                  {movie.overview.slice(0, 100)}...
+                  {movie?.overview.slice(0, 100)}...
                 </div>
               </div>
               <div className="flex gap-7 my-6">
-                <Link href={`/${movie.title ? "movie" : "tv"}/${movie.id}`}>
-                  <Button
-                    className="!bg-white/10 cursor-pointer"
-                    variant="outline"
-                  >
+                <Link href={`/${movie?.title ? "movie" : "tv"}/${movie?.id}`}>
+                  <Button variant="secondary">
                     <BookmarkIcon className="w-full h-full" />
                     Add to Watchlist
                   </Button>
                 </Link>
-                <Link href={`/${movie.title ? "movie" : "tv"}/${movie.id}`}>
-                  <Button className="cursor-pointer">
+                <Link href={`/${movie?.title ? "movie" : "tv"}/${movie?.id}`}>
+                  <Button>
                     <InformationCircleIcon className="w-full h-full" />
                     More Info
                   </Button>

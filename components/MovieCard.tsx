@@ -9,17 +9,23 @@ import { MTV } from "@/types/tmdb";
 import axios from "axios";
 import { useUserStore } from "@/store/userStore";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface MovieCardProps {
   movie: MTV;
   status?: string;
   eps?: number;
+  hoverable?: boolean;
 }
 
-const MovieCard = ({ movie, status = "", eps = 0 }: MovieCardProps) => {
+const MovieCard = ({
+  movie,
+  status = "",
+  eps = 0,
+  hoverable = false,
+}: MovieCardProps) => {
   const [isWatchlisted, setIsWatchlisted] = useState();
   const { user, loading } = useUserStore();
-  console.log("hgsika", movie);
 
   const handleWatchlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,7 +58,12 @@ const MovieCard = ({ movie, status = "", eps = 0 }: MovieCardProps) => {
     episodes > 0 ? (watchedEpisodes / episodes) * 100 : 0;
 
   return (
-    <div className="relative w-52 rounded-lg overflow-hidden shadow-lg border-[0.5px] border-white/20">
+    <div
+      className={cn(
+        "relative rounded-lg overflow-hidden shadow-lg border-[0.5px] border-white/20 transition-all duration-1000 min-w-52 w-52",
+        hoverable && "hover:w-72"
+      )}
+    >
       <Link
         href={`/${movie?.title ? "movie" : "tv"}/${movie?.id}`}
         className="block"
