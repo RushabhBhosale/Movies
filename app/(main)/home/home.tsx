@@ -1,14 +1,11 @@
 "use client";
 import Carousel from "@/components/Carousel";
 import MovieCard from "@/components/MovieCard";
-import { InsightCard, StatCard } from "@/components/StatCard";
-import { Separator } from "@/components/ui/separator";
 import { MTV } from "@/types/tmdb";
 import { imageBaseUrl } from "@/utils/options";
 import {
   CheckCheck,
   Clock,
-  Eye,
   Pause,
   Play,
   Star,
@@ -41,6 +38,7 @@ export default function Home({
   recs,
 }: HomeProps) {
   const [watching, setWatching] = useState<any>([]);
+  const [rec, setRec] = useState<any>([]);
   const stat = stats.stats;
   const statsData = [
     {
@@ -96,9 +94,13 @@ export default function Home({
     if (watchlist) {
       const res = watchlist.filter((movie: MTV) => movie.status === "Watching");
       setWatching(res);
+
+      const latestCompleted = watchlist.filter(
+        (movie: MTV) => movie.status === "Completed"
+      );
+      setRec(latestCompleted[0]);
     }
   }, [watchlist]);
-  console.log("khdgc", upcoming);
   return (
     <div className="p-3 bg-zinc-900">
       <div className="px-4 pt-6 pb-1 md:px-6">
@@ -147,7 +149,7 @@ export default function Home({
       </div>
 
       <div className="md:hidden px-4 mb-6">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-2 px-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-2 px-2">
           {statsData.map((item, i) => (
             <div
               key={i}
@@ -195,6 +197,34 @@ export default function Home({
               </div>
             </div>
 
+            <div>
+              <div className="flex gap-3 no-scrollbar overflow-auto">
+                {watching.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
+                      <h2 className="text-2xl font-bold text-white">
+                        Recommended for you
+                      </h2>
+                      <div className="flex-1 h-px bg-gradient-to-r from-zinc-700 to-transparent" />
+                    </div>
+
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none -mx-2 px-2">
+                      {watching.map((movie: any, index: number) => (
+                        <div key={index} className="flex-shrink-0">
+                          <MovieCard
+                            movie={movie.details}
+                            status={movie.status}
+                            eps={movie.globalEpisodeNo}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
@@ -203,7 +233,7 @@ export default function Home({
                 </h2>
                 <div className="flex-1 h-px bg-gradient-to-r from-zinc-700 to-transparent" />
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none -mx-2 px-2">
+              <div className="flex gap-4 overflow-x-auto pb-4  no-scrollbar -mx-2 px-2">
                 {upcoming.map((movie: any, index: number) => (
                   <div key={index} className="flex-shrink-0">
                     <MovieCard movie={movie} />
@@ -274,7 +304,6 @@ export default function Home({
               </div>
             </div>
 
-            {/* Popular Section */}
             <div className="bg-zinc-800/50 backdrop-blur-sm rounded-2xl border border-zinc-700/50 overflow-hidden">
               <div className="p-4 border-b border-zinc-700/50">
                 <div className="flex items-center gap-2">

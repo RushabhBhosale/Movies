@@ -30,8 +30,6 @@ const HomePage = async () => {
     { watchlist }
   );
 
-  console.log(recRes.data);
-
   return (
     <Home
       recs={recRes.data}

@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/app-sidebar";
 import BottomNav from "@/components/bottomNav";
+import Footer from "@/components/Footer";
 
 export default function ProtectedLayoutUI({
   children,
@@ -20,6 +21,7 @@ export default function ProtectedLayoutUI({
           <Navbar />
           <main className="flex-1 w-full">{children}</main>
           <BottomNav />
+          <Footer />
         </SidebarInset>
       </div>
     </SidebarProvider>
