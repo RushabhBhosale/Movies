@@ -16,6 +16,7 @@ interface MovieCardProps {
   status?: string;
   eps?: number;
   hoverable?: boolean;
+  rank?: number;
 }
 
 const MovieCard = ({
@@ -23,6 +24,7 @@ const MovieCard = ({
   status = "",
   eps = 0,
   hoverable = false,
+  rank,
 }: MovieCardProps) => {
   const [isWatchlisted, setIsWatchlisted] = useState();
   const { user, loading } = useUserStore();
@@ -60,7 +62,7 @@ const MovieCard = ({
   return (
     <div
       className={cn(
-        "relative rounded-lg overflow-hidden shadow-lg border-[0.5px] border-white/20 transition-all duration-1000 min-w-52 w-52",
+        "relative rounded-lg overflow-hidden shadow-lg border-[0.5px] border-white/20 transition-all duration-1000 w-42 md:w-52",
         hoverable && "hover:w-72"
       )}
     >
@@ -69,7 +71,7 @@ const MovieCard = ({
         className="block"
       >
         <img
-          className="w-full h-80 object-cover"
+          className="w-full h-60 md:h-80 object-cover"
           src={`https://image.tmdb.org/t/p/w342/${movie?.poster_path}`}
           alt={movieTitle}
           loading="lazy"
@@ -77,19 +79,19 @@ const MovieCard = ({
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-          <h3 className="font-semibold text-base mb-2 line-clamp-2 leading-tight">
+        <div className="absolute bottom-0 left-0 right-0 p-2 md:p-4 text-white">
+          <h3 className="font-semibold text-xs md:text-base mb-1 md:mb-2 line-clamp-2 leading-tight">
             {movieTitle}
           </h3>
 
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-1">
+          <div className="flex items-center justify-between mb-1 md:mb-3">
+            <div className="flex items-center">
               <StarIcon className="h-4 w-4 text-yellow-400" />
-              <span className="text-sm font-medium">
+              <span className="text-xs md:text-sm font-medium">
                 {movie?.vote_average?.toFixed(1) || "N/A"}
               </span>
             </div>
-            <span className="text-xs bg-white/20 px-2 py-1 rounded">
+            <span className="text-xs bg-white/20 p-1 md:md:px-2 py-1 rounded">
               {releaseYear}
             </span>
           </div>
@@ -135,6 +137,16 @@ const MovieCard = ({
           <Bookmark className="h-4 w-4 text-white" />
         )}
       </Button>
+
+      {rank && (
+        <Button
+          variant="secondary"
+          size="icon"
+          className="absolute top-3 right-3 h-8 w-8 bg-white text-black z-10 !cursor-default md:cursor-pointer hover:bg-white"
+        >
+          #{rank}
+        </Button>
+      )}
     </div>
   );
 };

@@ -28,72 +28,74 @@ const Search = () => {
   }, [search]);
 
   useEffect(() => {
-    const fetchSearchResults = async () => {
-      if (!debouncedSearch) {
-        setResults([]);
-        setError(null);
-        return;
-      }
-
-      if (currentRequestRef.current) {
-        currentRequestRef.current.abort();
-      }
-
-      const now = Date.now();
-      const timeSinceLastRequest = now - lastRequestTimeRef.current;
-      const minInterval = 300;
-
-      if (timeSinceLastRequest < minInterval) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, minInterval - timeSinceLastRequest)
-        );
-      }
-
-      const abortController = new AbortController();
-      currentRequestRef.current = abortController;
-
-      setIsLoading(true);
-      setError(null);
-      lastRequestTimeRef.current = Date.now();
-
-      try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(debouncedSearch)}`,
-          {
-            signal: abortController.signal,
-            headers: {
-              "Cache-Control": "max-age=60",
-            },
-          }
-        );
-
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
-        setResults(data.results || []);
-        setError(null);
-      } catch (err: any) {
-        if (err.name === "AbortError") {
-          return;
-        }
-
-        console.error("Search error", err);
-        setResults([]);
-        setError("Search temporarily unavailable. Please try again.");
-      } finally {
-        setIsLoading(false);
-        currentRequestRef.current = null;
-      }
-    };
-
     fetchSearchResults();
   }, [debouncedSearch]);
+
+  const fetchSearchResults = async () => {
+    if (!debouncedSearch) {
+      setResults([]);
+      setError(null);
+      return;
+    }
+
+    if (currentRequestRef.current) {
+      currentRequestRef.current.abort();
+    }
+
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTimeRef.current;
+    const minInterval = 300;
+
+    if (timeSinceLastRequest < minInterval) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, minInterval - timeSinceLastRequest)
+      );
+    }
+
+    const abortController = new AbortController();
+    currentRequestRef.current = abortController;
+
+    setIsLoading(true);
+    setError(null);
+    lastRequestTimeRef.current = Date.now();
+
+    try {
+      const res = await fetch(
+        `/api/search?q=${encodeURIComponent(debouncedSearch)}`,
+        {
+          signal: abortController.signal,
+          headers: {
+            "Cache-Control": "max-age=60",
+          },
+        }
+      );
+
+      if (abortController.signal.aborted) return;
+
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+      const data = await res.json();
+      setResults(data.results || []);
+      setError(null);
+
+      if (data.results?.length === 0) {
+        const aiRes = await fetch(
+          `/api/ai-search?q=${encodeURIComponent(debouncedSearch)}`
+        );
+        const data = await aiRes.json();
+        setResults(data.results);
+        setError(null);
+      }
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      console.error("Search error", err);
+      setResults([]);
+      setError("Search temporarily unavailable. Please try again.");
+    } finally {
+      setIsLoading(false);
+      currentRequestRef.current = null;
+    }
+  };
 
   const handleClick = () => {
     setSearch("");

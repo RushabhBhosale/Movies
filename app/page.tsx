@@ -152,8 +152,11 @@ export default function LandingPage() {
                   thoughts.
                 </p>
                 <div className="flex space-x-1 mt-3">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star className="h-4 w-4 fill-chart-3 text-chart-3" />
+                  {[1, 2, 3, 4, 5].map((star, index) => (
+                    <Star
+                      key={index}
+                      className="h-4 w-4 fill-chart-3 text-chart-3"
+                    />
                   ))}
                 </div>
               </CardContent>

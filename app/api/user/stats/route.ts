@@ -1,4 +1,8 @@
-import { getMediaDetails, getDetailedTVRuntime } from "@/hooks/useTmdb";
+import {
+  getMediaDetails,
+  getDetailedTVRuntime,
+  fetchTmdbData,
+} from "@/hooks/useTmdb";
 import clientPromise from "@/utils/mongoDb";
 import { NextResponse } from "next/server";
 
@@ -23,9 +27,12 @@ export async function GET(req: Request) {
 
     const statusCount: Record<string, number> = {};
     const genreMap: Record<string, number> = {};
+    const languageMap: Record<string, number> = {};
     let totalMinutes = 0;
     let totalRating = 0;
     let ratingCount = 0;
+    let tvCount = 0;
+    let movieCount = 0;
 
     const mediaIds: string[] = [];
 
@@ -33,18 +40,23 @@ export async function GET(req: Request) {
       const { status, mediaId, type } = item;
 
       mediaIds.push(mediaId);
-
       statusCount[status] = (statusCount[status] || 0) + 1;
 
+      if (type === "tv") tvCount++;
+      else if (type === "movie") movieCount++;
+
+      let details: any;
+      if (type === "tv") {
+        details = await getDetailedTVRuntime(mediaId);
+        const lang = details.language || "Unknown";
+        languageMap[lang] = (languageMap[lang] || 0) + 1;
+      } else {
+        details = await fetchTmdbData(`/${type}/${mediaId}?language=en-US`);
+        const lang = details.original_language || "Unknown";
+        languageMap[lang] = (languageMap[lang] || 0) + 1;
+      }
+
       if (status === "Completed") {
-        let details;
-
-        if (type === "tv") {
-          details = await getDetailedTVRuntime(mediaId);
-        } else {
-          details = await getMediaDetails(mediaId, type);
-        }
-
         const runtime = details.runtime || 0;
         totalMinutes += runtime;
 
@@ -85,7 +97,10 @@ export async function GET(req: Request) {
           avgRating,
           completionRate: `${completionRate}%`,
           allGenres: genreMap,
+          allLanguages: languageMap,
           totalItems: watchlistItems.length,
+          tvCount,
+          movieCount,
           mediaIds,
         },
       },

@@ -25,6 +25,7 @@ interface HomeProps {
   user: any;
   genres: any;
   recs: any;
+  latest: any;
 }
 
 export default function Home({
@@ -36,9 +37,9 @@ export default function Home({
   user,
   genres,
   recs,
+  latest,
 }: HomeProps) {
   const [watching, setWatching] = useState<any>([]);
-  const [rec, setRec] = useState<any>([]);
   const stat = stats.stats;
   const statsData = [
     {
@@ -90,20 +91,16 @@ export default function Home({
       gradient: "from-rose-500/20 to-rose-600/5",
     },
   ];
+
   useEffect(() => {
     if (watchlist) {
       const res = watchlist.filter((movie: MTV) => movie.status === "Watching");
       setWatching(res);
-
-      const latestCompleted = watchlist.filter(
-        (movie: MTV) => movie.status === "Completed"
-      );
-      setRec(latestCompleted[0]);
     }
   }, [watchlist]);
   return (
     <div className="p-3 bg-zinc-900">
-      <div className="px-4 pt-6 pb-1 md:px-6">
+      <div className="px-4 pt-2 pb-1 md:px-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white">
@@ -197,33 +194,32 @@ export default function Home({
               </div>
             </div>
 
-            <div>
-              <div className="flex gap-3 no-scrollbar overflow-auto">
-                {watching.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
-                      <h2 className="text-2xl font-bold text-white">
-                        Recommended for you
-                      </h2>
-                      <div className="flex-1 h-px bg-gradient-to-r from-zinc-700 to-transparent" />
-                    </div>
+            {recs.length > 1 && (
+              <div>
+                <div className="flex gap-3 no-scrollbar overflow-auto">
+                  {watching.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1 h-8 hidden md:block bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
+                        <h2 className="text-sm md:text-xl lg:text-2xl font-bold text-white truncate max-w-[330px] md:max-w-[800px] lg:max-w-[1000px]">
+                          Because you watched{" "}
+                          {latest.details.name || latest.details.title}
+                        </h2>
+                        <div className="flex-1 h-px bg-gradient-to-r from-zinc-700 to-transparent" />
+                      </div>
 
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none -mx-2 px-2">
-                      {watching.map((movie: any, index: number) => (
-                        <div key={index} className="flex-shrink-0">
-                          <MovieCard
-                            movie={movie.details}
-                            status={movie.status}
-                            eps={movie.globalEpisodeNo}
-                          />
-                        </div>
-                      ))}
+                      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none -mx-2 px-2">
+                        {recs.map((movie: any, index: number) => (
+                          <div key={index} className="flex-shrink-0">
+                            <MovieCard movie={movie} />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -256,7 +252,7 @@ export default function Home({
               <div className="p-2 space-y-1 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
                 {trending.slice(0, 8).map((movie, index) => (
                   <Link
-                    key={`trending-${movie.id}`}
+                    key={index}
                     href={`/${movie.title ? "movie" : "tv"}/${movie.id}`}
                     className="flex items-center gap-3 hover:bg-zinc-700/50 rounded-lg p-2 transition-all duration-200 group"
                   >
@@ -315,7 +311,7 @@ export default function Home({
               <div className="p-2 space-y-1 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
                 {popular.slice(0, 8).map((movie, index) => (
                   <Link
-                    key={`popular-${movie.id}`}
+                    key={index}
                     href={`/${movie.title ? "movie" : "tv"}/${movie.id}`}
                     className="flex items-center gap-3 hover:bg-zinc-700/50 rounded-lg p-2 transition-all duration-200 group"
                   >
@@ -353,6 +349,74 @@ export default function Home({
                             <div className="flex items-center gap-1">
                               <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                               <span>{movie.vote_average.toFixed(1)}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-800/50 backdrop-blur-sm rounded-2xl border border-zinc-700/50 overflow-hidden">
+              <div className="p-4 border-b border-zinc-700/50">
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-400" />
+                  <h3 className="font-bold text-white">Recently Added</h3>
+                </div>
+              </div>
+
+              <div className="p-2 space-y-1  overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800">
+                {watchlist.slice(0, 10).map((movie: any, index: number) => (
+                  <Link
+                    key={index}
+                    href={`/${movie.details.title ? "movie" : "tv"}/${
+                      movie.details.id
+                    }`}
+                    className="flex items-center gap-3 hover:bg-zinc-700/50 rounded-lg p-2 transition-all duration-200 group"
+                  >
+                    <div className="relative w-10 h-14 flex-shrink-0 rounded-lg overflow-hidden">
+                      <Image
+                        fill
+                        alt="poster"
+                        src={
+                          movie.details?.poster_path
+                            ? `${imageBaseUrl}/w500/${movie.details.poster_path}`
+                            : "/no-image.png"
+                        }
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        sizes="40px"
+                      />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white truncate leading-tight">
+                        {(movie.details.name || movie.details.title)?.slice(
+                          0,
+                          30
+                        )}
+                      </p>
+                      <div className="flex items-center text-xs text-zinc-400 gap-1 mt-1">
+                        <span>
+                          {movie.details.release_date ||
+                          movie.details.first_air_date
+                            ? new Date(
+                                movie.details.release_date ||
+                                  movie.details.first_air_date
+                              ).getFullYear()
+                            : "N/A"}
+                        </span>
+                        <span>•</span>
+                        <span>{movie.details.title ? "Movie" : "TV"}</span>
+                        {movie.details.vote_average && (
+                          <>
+                            <span>•</span>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                              <span>
+                                {movie.details.vote_average.toFixed(1)}
+                              </span>
                             </div>
                           </>
                         )}

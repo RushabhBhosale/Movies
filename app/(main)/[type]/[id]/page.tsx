@@ -53,7 +53,6 @@ export default async function DetailsPage({ params }: PageProps) {
     const collectionId = movie.belongs_to_collection.id;
     collection = await fetchTmdbData(`/collection/${collectionId}`);
   }
-  console.log("movie", movie);
 
   const initialData = {
     movie: movie,

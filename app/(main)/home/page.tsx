@@ -25,14 +25,22 @@ const HomePage = async () => {
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/user/stats?userId=${user._id}`
   );
 
-  const recRes = await axios.post(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/recommendations`,
-    { watchlist }
-  );
+  let recRes;
+  let latest;
+  const completed: any = watchlist.filter((m: any) => m.status === "Completed");
+  if (completed.length > 0 && completed[0]?.details?.id && completed[0]?.type) {
+    recRes = await fetchTmdbData(
+      `/${completed[0].type}/${completed[0].details.id}/recommendations`
+    );
+    latest = completed[0];
+  } else {
+    console.warn("⛔ No valid completed items found for recommendations");
+  }
 
   return (
     <Home
-      recs={recRes.data}
+      latest={latest}
+      recs={recRes}
       trending={trending}
       upcoming={upcoming}
       popular={popular}

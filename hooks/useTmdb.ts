@@ -1,12 +1,9 @@
 const apiKey = process.env.TMDB_API_KEY;
 const baseUrl = process.env.TMDB_BASE_URL;
 
-// Create a safe fallback object that won't break your components
 const createSafeFallback = (endpoint: string) => {
-  // Determine what type of data this endpoint expects
   const isSearch = endpoint.includes("/search/");
 
-  // Base fallback object
   const baseFallback = {
     id: null,
     title: "Unavailable",
@@ -34,9 +31,7 @@ const createSafeFallback = (endpoint: string) => {
   return baseFallback;
 };
 
-// Enhanced error handling with graceful fallbacks
 export async function fetchTmdbData(endpoint: any, retries = 2) {
-  // Return safe fallback instead of throwing for missing config
   if (!endpoint || !apiKey || !baseUrl) {
     console.error("Missing TMDB configuration:", {
       endpoint: !!endpoint,
@@ -118,7 +113,6 @@ export async function fetchTmdbData(endpoint: any, retries = 2) {
     }
   }
 
-  // Return safe fallback instead of throwing - maintains API contract
   console.error(
     "TMDB request failed after all retries:",
     lastError?.message || "Unknown error"
@@ -128,9 +122,9 @@ export async function fetchTmdbData(endpoint: any, retries = 2) {
 
 export async function getMediaDetails(mediaId: any, type: any) {
   try {
+    let langauge;
     const data = await fetchTmdbData(`/${type}/${mediaId}?language=en-US`);
 
-    // Data is now always safe, no need to check for null
     let runtime = 0;
     if (type === "movie") {
       runtime = data.runtime || 0;
@@ -144,6 +138,7 @@ export async function getMediaDetails(mediaId: any, type: any) {
     }
 
     return {
+      langauge: data.original_language,
       runtime,
       genres: data.genres || [],
       vote_average: data.vote_average || 0,
@@ -156,13 +151,12 @@ export async function getMediaDetails(mediaId: any, type: any) {
 
 export async function getDetailedTVRuntime(mediaId: any) {
   try {
+    let langauge;
     const mainData = await fetchTmdbData(`/tv/${mediaId}?language=en-US`);
 
-    // Data is now always safe, no need to check for null
     let totalRuntime = 0;
     const seasons = mainData.number_of_seasons || 0;
 
-    // Only proceed if we have seasons
     if (seasons > 0) {
       const seasonData = await Promise.all(
         Array.from({ length: seasons }, (_, i) =>
@@ -184,7 +178,6 @@ export async function getDetailedTVRuntime(mediaId: any) {
       }
     }
 
-    // Fallback calculation if no episode data
     if (totalRuntime === 0) {
       const epTimes = mainData.episode_run_time || [];
       const avg = epTimes.length
@@ -194,18 +187,17 @@ export async function getDetailedTVRuntime(mediaId: any) {
     }
 
     return {
+      language: mainData.original_language,
       runtime: totalRuntime,
       genres: mainData.genres || [],
       vote_average: mainData.vote_average || 0,
     };
   } catch (err) {
     console.error("getDetailedTVRuntime error:", err);
-    // Fallback to basic method
     return getMediaDetails(mediaId, "tv");
   }
 }
 
-// Helper function to safely use TMDB data in server components
 export async function safelyFetchTmdb<T>(
   tmdbFunction: () => Promise<T>,
   fallbackValue: T,
