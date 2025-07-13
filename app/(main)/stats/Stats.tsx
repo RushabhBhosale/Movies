@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
   Bar,
+  Tooltip,
 } from "recharts";
 
 const COLORS = [
@@ -123,17 +124,28 @@ const Stats = ({ stats }: any) => {
               outerRadius={70}
               innerRadius={35}
               paddingAngle={2}
-              label={({ name, percent }: any) =>
-                window.innerWidth < 640
-                  ? `(${(percent * 100).toFixed(0)}%)`
-                  : `${name} (${(percent * 100).toFixed(0)}%)`
-              }
+              label={false}
               labelLine={false}
             >
               {data.map((_, i) => (
                 <Cell key={`${key}-${i}`} fill={COLORS[i % COLORS.length]} />
               ))}
-              {isMobile && <Legend content={<CustomLegend />} />}
+              <Tooltip
+                formatter={(value: number, name: string, props: any) => {
+                  const total = data.reduce((acc, cur) => acc + cur.value, 0);
+                  const percent = ((value / total) * 100).toFixed(1);
+                  return [`${value} (${percent}%)`, name];
+                }}
+                contentStyle={{
+                  backgroundColor: "#ffffff",
+                  border: "none",
+                  borderRadius: "0.375rem",
+                  color: "white",
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                }}
+              />
+              <Legend content={<CustomLegend />} />
             </Pie>
           </PieChart>
         </ResponsiveContainer>
