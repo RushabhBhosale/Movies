@@ -172,7 +172,7 @@ export default function Home({
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
-                      <h2 className="text-2xl font-bold text-white">
+                      <h2 className="text-sm md:text-xl lg:text-2xl font-bold text-white truncate max-w-[330px] md:max-w-[800px] lg:max-w-[1000px]">
                         Continue Watching
                       </h2>
                       <div className="flex-1 h-px bg-gradient-to-r from-zinc-700 to-transparent" />
@@ -224,7 +224,7 @@ export default function Home({
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full" />
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-sm md:text-xl lg:text-2xl font-bold text-white truncate max-w-[330px] md:max-w-[800px] lg:max-w-[1000px]">
                   Upcoming Releases
                 </h2>
                 <div className="flex-1 h-px bg-gradient-to-r from-zinc-700 to-transparent" />

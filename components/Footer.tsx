@@ -2,7 +2,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-zinc-950 text-zinc-300 border-t border-zinc-800 md:pt-4">
+    <footer className="hidden md:block w-full bg-zinc-950 text-zinc-300 border-t border-zinc-800 md:pt-4">
       <div className="max-w-6xl mx-auto px-6 py-6 md:py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
           <h2 className="text-xl font-semibold text-white">CineTrack</h2>
