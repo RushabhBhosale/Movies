@@ -385,7 +385,7 @@ const Watchlist = ({ initialData }: any) => {
                                 className="w-12 h-16 rounded-md object-cover flex-shrink-0"
                               />
                               <div className="min-w-0">
-                                <h3 className="font-semibold text-white truncate">
+                                <h3 className="font-semibold text-white truncate lg:max-w-[200px] xl:max-w-[300px]">
                                   {movie?.details.title || movie?.details.name}
                                 </h3>
                                 <p className="text-xs text-gray-400 truncate max-w-52">

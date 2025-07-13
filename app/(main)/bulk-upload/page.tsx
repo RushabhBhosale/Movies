@@ -46,42 +46,37 @@ export default function BulkUpload() {
       const res = await fetch("/api/bulk-upload", {
         method: "POST",
         body: JSON.stringify({ titles, userId: user._id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       const reader = res.body?.getReader();
       const decoder = new TextDecoder("utf-8");
-
       if (!reader) return;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value);
-        const lines = chunk.split("\n").filter((line) => !!line);
+        const lines = chunk.split("\n").filter(Boolean);
 
         lines.forEach((line) => {
-          // Update counters based on log content
           if (line.includes("✅") || line.includes("success")) {
-            setSuccessCount((prev) => prev + 1);
-            setProcessedTitles((prev) => prev + 1);
+            setSuccessCount((p) => p + 1);
+            setProcessedTitles((p) => p + 1);
           } else if (
             line.includes("❌") ||
             line.includes("error") ||
             line.includes("failed")
           ) {
-            setErrorCount((prev) => prev + 1);
-            setProcessedTitles((prev) => prev + 1);
+            setErrorCount((p) => p + 1);
+            setProcessedTitles((p) => p + 1);
           } else if (
             line.includes("already exists") ||
-            line.includes("duplicate") ||
-            line.includes("⚠️")
+            line.includes("⚠️") ||
+            line.includes("duplicate")
           ) {
-            setAlreadyExistsCount((prev) => prev + 1);
-            setProcessedTitles((prev) => prev + 1);
+            setAlreadyExistsCount((p) => p + 1);
+            setProcessedTitles((p) => p + 1);
           }
         });
 
@@ -111,39 +106,35 @@ export default function BulkUpload() {
     processedTitles === totalTitles && totalTitles > 0 && !globalLoading;
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 px-3 py-4 sm:px-4 sm:py-6">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <div className="text-center space-y-1 sm:space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Bulk Import Movies & Shows
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Import multiple titles at once with real-time progress tracking
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Input Section */}
-          <Card className="shadow-lg border-border/50">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl flex items-center gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <Card className="shadow-md border-border/50">
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                 <Upload className="h-5 w-5 text-primary" />
                 Input Titles
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Textarea
-                  placeholder="Paste your movie/show titles here (one per line)&#10;&#10;Example:&#10;The Matrix&#10;Breaking Bad&#10;Inception&#10;The Office"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="min-h-[300px] resize-none border-input bg-card text-card-foreground focus:ring-ring font-mono text-sm"
-                />
-                <div className="text-sm text-muted-foreground">
-                  {titles.length} {titles.length === 1 ? "title" : "titles"}{" "}
-                  detected
-                </div>
+            <CardContent className="space-y-3">
+              <Textarea
+                placeholder={`Paste your titles (one per line)\n\nExample:\nThe Matrix\nInception`}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                className="min-h-[250px] sm:min-h-[300px] resize-none border-input bg-card text-card-foreground focus:ring-ring font-mono text-sm sm:text-base"
+              />
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                {titles.length} {titles.length === 1 ? "title" : "titles"}{" "}
+                detected
               </div>
 
               <Button
@@ -163,88 +154,86 @@ export default function BulkUpload() {
                 ) : (
                   <>
                     <Film className="mr-2" size={18} />
-                    Start Import ({titles.length} titles)
+                    Start Import ({titles.length})
                   </>
                 )}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Progress Section */}
-          <Card className="shadow-lg border-border/50">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl flex items-center gap-2">
+          <Card className="shadow-md border-border/50">
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 Progress & Status
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Progress Bar */}
+            <CardContent className="space-y-5">
               {totalTitles > 0 && (
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {processedTitles} of {totalTitles} processed
-                    </span>
-                    <span className="font-medium">{Math.round(progress)}%</span>
+                <>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs sm:text-sm">
+                      <span className="text-muted-foreground">
+                        {processedTitles} of {totalTitles} processed
+                      </span>
+                      <span className="font-medium">
+                        {Math.round(progress)}%
+                      </span>
+                    </div>
+                    <Progress value={progress} className="h-2.5 bg-muted" />
                   </div>
-                  <Progress value={progress} className="h-3 bg-muted" />
-                </div>
+
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3 text-sm">
+                    <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-md border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <span className="text-green-800 dark:text-green-200">
+                          Success
+                        </span>
+                      </div>
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {successCount}
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-center gap-1">
+                        <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        <span className="text-amber-800 dark:text-amber-200">
+                          Exists
+                        </span>
+                      </div>
+                      <div className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                        {alreadyExistsCount}
+                      </div>
+                    </div>
+
+                    <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded-md border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-1">
+                        <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <span className="text-red-800 dark:text-red-200">
+                          Failed
+                        </span>
+                      </div>
+                      <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                        {errorCount}
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
-              {/* Stats */}
-              {totalTitles > 0 && (
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      <span className="font-medium text-green-800 dark:text-green-200 text-sm">
-                        Success
-                      </span>
-                    </div>
-                    <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                      {successCount}
-                    </div>
-                  </div>
-
-                  <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
-                    <div className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                      <span className="font-medium text-amber-800 dark:text-amber-200 text-sm">
-                        Exists
-                      </span>
-                    </div>
-                    <div className="text-xl font-bold text-amber-600 dark:text-amber-400">
-                      {alreadyExistsCount}
-                    </div>
-                  </div>
-
-                  <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800">
-                    <div className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                      <span className="font-medium text-red-800 dark:text-red-200 text-sm">
-                        Failed
-                      </span>
-                    </div>
-                    <div className="text-xl font-bold text-red-600 dark:text-red-400">
-                      {errorCount}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Status */}
-              <div className="text-center">
+              <div className="text-center text-sm">
                 {globalLoading && (
-                  <div className="flex items-center justify-center gap-2 text-primary">
-                    <Loader2 className="animate-spin h-5 w-5" />
-                    <span className="font-medium">Processing titles...</span>
+                  <div className="flex items-center justify-center gap-1 text-primary">
+                    <Loader2 className="animate-spin h-4 w-4" />
+                    Processing titles...
                   </div>
                 )}
                 {isComplete && (
-                  <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
-                    <CheckCircle className="h-5 w-5" />
-                    <span className="font-medium">Import completed!</span>
+                  <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400">
+                    <CheckCircle className="h-4 w-4" />
+                    Import completed!
                   </div>
                 )}
               </div>
@@ -252,11 +241,10 @@ export default function BulkUpload() {
           </Card>
         </div>
 
-        {/* Log Section */}
         {log.length > 0 && (
-          <Card className="shadow-lg border-border/50">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl flex items-center gap-2">
+          <Card className="shadow-md border-border/50">
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                 <Film className="h-5 w-5 text-primary" />
                 Import Log
               </CardTitle>
@@ -264,13 +252,13 @@ export default function BulkUpload() {
             <CardContent>
               <div
                 ref={logRef}
-                className="bg-muted/50 border border-border rounded-lg p-4 max-h-[400px] overflow-y-auto space-y-1"
+                className="bg-muted/50 border border-border rounded-md p-3 max-h-[300px] overflow-y-auto overflow-x-auto space-y-1 text-sm"
               >
                 {log.map((line, i) => (
                   <div
                     key={i}
                     className={cn(
-                      "text-sm font-mono leading-relaxed",
+                      "font-mono leading-relaxed",
                       line.includes("✅") || line.includes("success")
                         ? "text-green-600 dark:text-green-400"
                         : "",
