@@ -33,7 +33,7 @@ export default function AppSidebar(
   const pathname = usePathname();
 
   const profile = {
-    name: user?.name || "Guest",
+    name: user?.username || "Guest",
     email: user?.email || "",
   };
 
