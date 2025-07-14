@@ -72,7 +72,7 @@ const Navbar = () => {
             <DropdownMenuItem onClick={() => router.push("/watchlist")}>
               Watchlist
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/watchlist")}>
+            <DropdownMenuItem onClick={() => router.push("/stats")}>
               Stats
             </DropdownMenuItem>
             <DropdownMenuItem onClick={logoutUser}>Logout</DropdownMenuItem>

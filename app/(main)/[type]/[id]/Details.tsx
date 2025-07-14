@@ -21,6 +21,7 @@ interface DetailsPageClientProps {
     reviews: any;
     recommendations: any[];
     collection: any;
+    userReview: any;
   };
   genres: Genre[];
 }
@@ -45,8 +46,6 @@ export default function DetailsPageClient({
   const maxSize = 4.5;
   const titleShrink = title?.length ? title.length * 0.05 : 0;
   const adjustedMax = Math.max(maxSize - titleShrink, minSize);
-
-  console.log("dcewfewew", initialData.collection);
 
   useEffect(() => {
     checkWatchlist();
@@ -87,7 +86,31 @@ export default function DetailsPageClient({
       ?.filter((person: any) => person.job === "Producer")
       .slice(0, 2) || [];
 
-  const topReviews = reviews?.slice(0, 3) || [];
+  const topReviews = (() => {
+    if (
+      !initialData.userReview ||
+      (Array.isArray(initialData.userReview) &&
+        initialData.userReview.length === 0)
+    ) {
+      return reviews?.slice(0, 3) || [];
+    }
+
+    const userReview = Array.isArray(initialData.userReview)
+      ? initialData.userReview[0]
+      : initialData.userReview;
+
+    if (userReview && userReview._id && userReview.userId) {
+      return [
+        userReview,
+        ...(reviews || []).filter(
+          (r: any) => r._id !== userReview._id && r.userId !== userReview.userId
+        ),
+      ].slice(0, 3);
+    }
+
+    return reviews?.slice(0, 3) || [];
+  })();
+  console.log("fv", user);
 
   const handleWatchlistToggle = async () => {
     const payload = {
@@ -341,60 +364,68 @@ export default function DetailsPageClient({
 
       <section className="container mx-auto px-4 py-8">
         <h3 className="text-white font-semibold mb-4">Reviews</h3>
-        {topReviews.length > 0 ? (
-          <div className="space-y-4 lg:space-y-6">
-            {topReviews.map((review: any) => (
-              <div key={review.id} className="bg-white/5 rounded-lg p-4 lg:p-6">
-                <div className="flex items-start gap-3 lg:gap-4 mb-3 lg:mb-4">
-                  <div className="relative w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
-                    {review.author_details?.avatar_path ? (
-                      <Image
-                        src={
-                          review.author_details.avatar_path.startsWith("/https")
-                            ? review.author_details.avatar_path.slice(1)
-                            : `${imageBaseUrl}/w500/${review.author_details.avatar_path}`
-                        }
-                        alt={review.author}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                        {review.author.charAt(0).toUpperCase()}
+        {topReviews.map((review: any) => {
+          const isAdmin = !!review.mediaId;
+          const profileImage = isAdmin
+            ? `/profile.webp`
+            : review.author_details?.avatar_path
+            ? review.author_details.avatar_path.startsWith("/https")
+              ? review.author_details.avatar_path.slice(1)
+              : `${imageBaseUrl}/w500/${review.author_details.avatar_path}`
+            : null;
+
+          const authorName = isAdmin ? user?.username : review.author;
+
+          return (
+            <div key={review._id} className="bg-white/5 rounded-lg p-4 lg:p-6">
+              <div className="flex items-start gap-3 lg:gap-4 mb-3 lg:mb-4">
+                <div className="relative w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                  {profileImage ? (
+                    <Image
+                      src={profileImage}
+                      alt={authorName}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      {authorName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
+                    <p className="text-white font-medium truncate">
+                      {authorName}
+                    </p>
+                    {isAdmin && user?.email === "bhosalerushabh0@gmail.com" && (
+                      <span className="text-xs px-2 py-0.5 bg-yellow-500 text-black rounded-full">
+                        Admin
+                      </span>
+                    )}
+                    {review.rating && (
+                      <div className="flex items-center gap-1">
+                        <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="text-white/60 text-sm">
+                          {review.rating * 2}/10
+                        </span>
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
-                      <p className="text-white font-medium truncate">
-                        {review.author}
-                      </p>
-                      {review.author_details?.rating && (
-                        <div className="flex items-center gap-1">
-                          <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span className="text-white/60 text-sm">
-                            {review.author_details.rating}/10
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-white/60 text-sm mb-2">
-                      <FormattedDate date={review.created_at} />
-                    </p>
-                    <p className="text-white/80 text-sm leading-relaxed">
-                      {review.content.length > 300
-                        ? review.content.slice(0, 300) + "..."
-                        : review.content}
-                    </p>
-                  </div>
+                  <p className="text-white/60 text-sm mb-2">
+                    <FormattedDate date={review.created_at} />
+                  </p>
+                  <p className="text-white/80 text-sm leading-relaxed">
+                    {review.review?.length > 300
+                      ? review.review.slice(0, 300) + "..."
+                      : review.review}
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-white/60">No reviews available</div>
-        )}
+            </div>
+          );
+        })}
       </section>
 
       {type === "tv" && movie?.seasons && (

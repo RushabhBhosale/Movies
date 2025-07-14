@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { fetchTmdbData } from "@/hooks/useTmdb";
 import { fetchTmdbGenres } from "@/hooks/useTmdbGenres";
 import DetailsPageClient from "./Details";
+import { getUserReview } from "@/lib/db/getUserReview";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 
 interface PageProps {
   params: Promise<{ type: "movie" | "tv"; id: string }>;
@@ -32,6 +34,7 @@ function LoadingSkeleton() {
 
 export default async function DetailsPage({ params }: PageProps) {
   const { type, id } = await params;
+  const user: any = await getUserFromToken();
   const genres = await fetchTmdbGenres();
   const movie = await fetchTmdbData(
     `/${type}/${id}?append_to_response=credits,videos,reviews,recommendations`
@@ -46,6 +49,7 @@ export default async function DetailsPage({ params }: PageProps) {
   const credits = movie.credits;
   const videos = movie.videos.results;
   const reviews = movie.reviews.results;
+  const userReview = await getUserReview(user._id);
   const recommendations = movie.recommendations.results;
 
   let collection = null;
@@ -61,6 +65,7 @@ export default async function DetailsPage({ params }: PageProps) {
     reviews,
     recommendations,
     collection,
+    userReview,
   };
 
   return (

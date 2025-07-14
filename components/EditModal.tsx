@@ -1,3 +1,4 @@
+"use client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MTV } from "@/types/tmdb";
 import React, { useEffect, useState } from "react";
@@ -10,10 +11,12 @@ import PlainModal from "./PlainModal";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
 import { toast } from "sonner";
+import { useUserStore } from "@/store/userStore";
 
 const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
   const item: MTV = movie.details;
   const isMovie = !!item?.title;
+  const user = useUserStore();
   const isMobile = useIsMobile();
   const [rating, setRating] = useState(movie.userRating);
   const [open, setOpen] = useState(false);
@@ -142,6 +145,20 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
     (season) => season.id.toString() === selectedSeasonId
   );
 
+  const handleSaveReview = async () => {
+    try {
+      await axios.post("/api/review/add", {
+        userId: user.user?._id,
+        mediaId: String(item.id),
+        type: movie.type,
+        review,
+        rating: rating / 2,
+      });
+    } catch (err) {
+      console.error("Review API error", err);
+    }
+  };
+
   const handleSaveChanges = async () => {
     const payload = {
       id: movie._id,
@@ -156,6 +173,7 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
 
     try {
       const res = await axios.put("/api/watchlist/update-status", payload);
+      await handleSaveReview();
       toast.success(res.data.message);
       onSave?.();
       setOpen(false);

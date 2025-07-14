@@ -156,7 +156,7 @@ const Watchlist = ({ initialData }: any) => {
   const dropdownRef = useRef(null);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 text-white bg-zinc-900 min-h-screen">
+    <div className="w-full mx-auto p-4 text-white bg-zinc-900 min-h-screen">
       <div className="flex justify-between items-center mb-6 gap-4">
         <Tabs
           className="w-full xl:max-w[550px] lg:max-w-[420px] md:max-w-[420px]"
@@ -169,7 +169,7 @@ const Watchlist = ({ initialData }: any) => {
                 <TabsTrigger
                   key={status.id}
                   value={status.name}
-                  onClick={() => setActiveTab(activeTab)}
+                  onClick={() => setActiveTab(status.name)} // Fixed to update activeTab correctly
                   className={`text-sm px-4 py-3 whitespace-nowrap rounded-md ${
                     activeTab === status.name
                       ? "bg-zinc-600"
@@ -332,9 +332,21 @@ const Watchlist = ({ initialData }: any) => {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="text-center mt-20">
-          <p className="text-gray-400 text-lg">No items found.</p>
+      {watchlist.length === 0 ? (
+        <div className="bg-zinc-800/50 backdrop-blur-sm rounded-xl border border-zinc-700/50 p-6 text-center mt-8">
+          <p className="text-zinc-300 text-sm md:text-base mb-4">
+            Your watchlist is empty! Start adding movies or TV shows to keep
+            track of what you want to watch.
+          </p>
+          <Button>Add now</Button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-zinc-800/50 backdrop-blur-sm rounded-xl border border-zinc-700/50 p-6 text-center mt-8">
+          <p className="text-zinc-300 text-sm md:text-base mb-4">
+            No items found matching your search or filter. Try adjusting your
+            filters or explore more content!
+          </p>
+          <Button>Add now</Button>
         </div>
       ) : (
         <>

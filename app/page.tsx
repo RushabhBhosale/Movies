@@ -19,7 +19,6 @@ import Link from "next/link";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation */}
       <nav className="border-b border-border backdrop-blur-md bg-sidebar/50 z-50 fixed top-0 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -48,7 +47,6 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative mt-16 hero-grad py-20 sm:py-32 overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-10 left-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
@@ -92,7 +90,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Feature Highlights */}
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -176,7 +173,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Preview Watchlist UI */}
       <section className="py-20 bg-muted/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -231,7 +227,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* User Stats Snapshot */}
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -276,7 +271,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Call to Action Footer */}
       <section className="py-20 hero-grad relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10"></div>
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -303,7 +297,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border py-12 bg-sidebar/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
