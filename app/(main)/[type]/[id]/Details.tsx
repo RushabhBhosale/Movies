@@ -11,6 +11,7 @@ import { useUserStore } from "@/store/userStore";
 import axios from "axios";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 interface DetailsPageClientProps {
   type: "movie" | "tv";
@@ -231,7 +232,10 @@ export default function DetailsPageClient({
               <h3 className="text-white font-semibold mb-4">
                 {type === "movie" ? "Director" : "Creator"}
               </h3>
-              <div className="flex items-center gap-4">
+              <Link
+                className="flex items-center gap-4"
+                href={`/person/${director.id}/credits`}
+              >
                 <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
                   {director?.profile_path ? (
                     <Image
@@ -253,7 +257,7 @@ export default function DetailsPageClient({
                     {type === "movie" ? "Director" : "Creator"}
                   </p>
                 </div>
-              </div>
+              </Link>
             </div>
           )}
           <div className="space-y-3">
@@ -264,7 +268,11 @@ export default function DetailsPageClient({
                   Producers
                 </span>
                 <span className="text-white text-sm flex-1">
-                  {producers.map((p: any) => p.name).join(", ")}
+                  {producers.map((p: any) => (
+                    <Link href={`/person/${p.id}/credits`}>
+                      <span>{p.name}</span>
+                    </Link>
+                  ))}
                 </span>
               </div>
             )}
@@ -292,31 +300,33 @@ export default function DetailsPageClient({
         <h3 className="text-white font-semibold mb-4">Main Cast</h3>
         <div className="flex overflow-x-auto gap-10 no-scrollbar">
           {mainCast.map((actor: any) => (
-            <div key={actor.id} className="text-center flex-shrink-0">
-              <div className="relative size-16 md:size-24 lg:size-32 mx-auto mb-2 rounded-full overflow-hidden bg-gray-700">
-                {actor.profile_path ? (
-                  <Image
-                    src={`${imageBaseUrl}/original/${actor.profile_path}`}
-                    alt={actor.name}
-                    fill
-                    sizes="500px"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                    No Image
-                  </div>
-                )}
+            <Link href={`/person/${actor.id}/credits`}>
+              <div key={actor.id} className="text-center flex-shrink-0">
+                <div className="relative size-16 md:size-24 lg:size-32 mx-auto mb-2 rounded-full overflow-hidden bg-gray-700">
+                  {actor.profile_path ? (
+                    <Image
+                      src={`${imageBaseUrl}/original/${actor.profile_path}`}
+                      alt={actor.name}
+                      fill
+                      sizes="500px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col items-center">
+                  <p className="text-white text-xs font-medium mb-1 leading-tight max-w-[80px]">
+                    {actor.name}
+                  </p>
+                  <p className="text-white/60 text-xs leading-tight max-w-[80px]">
+                    {actor.character}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col items-center">
-                <p className="text-white text-xs font-medium mb-1 leading-tight max-w-[80px]">
-                  {actor.name}
-                </p>
-                <p className="text-white/60 text-xs leading-tight max-w-[80px]">
-                  {actor.character}
-                </p>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

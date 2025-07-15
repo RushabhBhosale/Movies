@@ -6,8 +6,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "@/components/ui/sonner";
 import HydrateUser from "@/lib/hydrateZustandUser";
 import { cookies } from "next/headers";
-import { getUserFromToken } from "@/lib/getUserFromToken";
-import { UserProvider } from "@/lib/userProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
