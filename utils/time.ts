@@ -9,6 +9,6 @@ export const time = async <T>(
     console.log(`⏱️ ${label}: ${(end - start).toFixed(1)}ms`);
     return result;
   } else {
-    return await fn(); // skip timing on client
+    return await fn();
   }
 };

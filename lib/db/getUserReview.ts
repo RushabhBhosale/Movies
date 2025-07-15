@@ -10,7 +10,6 @@ export async function getAllReviewsByUser(userId: string) {
       .find({ userId })
       .sort({ createdAt: -1 })
       .toArray();
-    console.log("asc", review);
 
     return review.map((item) => ({
       ...item,
@@ -28,7 +27,6 @@ export async function getUserReview(userId: string, mediaId: string) {
     const db = client.db();
 
     const review = await db.collection("reviews").findOne({ userId, mediaId });
-    console.log("fjv", mediaId, userId);
 
     if (!review) return null;
 

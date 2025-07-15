@@ -6,11 +6,10 @@ export async function GET(req: Request) {
   const query = searchParams.get("q");
 
   if (!query) {
-    console.log("AI Search: Empty query");
     return NextResponse.json({ results: [] });
   }
 
-  const prompt = `You are a movie recommendation expert. The user is trying to search for a movie or TV show using fuzzy or vague input. Your job is to return the correct full name of the most likely movie or show. ONLY return the name. No explanations.\n\nUser input: "${query}"
+  const prompt = `You are a movie recommendation expert. The user is trying to search for a movie or TV show using fuzzy or vague input if the user inputs a message like shahrukh khan movies or anything like movies on cars just give the output of movie or tvshow name related to that . Your job is to return the correct full name of the most likely movie or show. ONLY return the name. No explanations.\n\nUser input: "${query}"
   ONLY RETURN THE NAME EXAMPLE :- The dark knight or NARUTO or 3 Idiots if i type batmn its should be BATMAN
   `;
 
@@ -32,26 +31,22 @@ export async function GET(req: Request) {
     );
 
     const data = await response.json();
-    console.log(":chkdsc", data);
     const suggestionRaw = data?.choices?.[0]?.message?.content;
     const suggestion =
       typeof suggestionRaw === "string"
-        ? suggestionRaw.trim().replace(/^["']|["']$/g, "")
+        ? suggestionRaw
+            .split("\n")[0]
+            .replace(/^\d+\.\s*/, "")
+            .trim()
         : null;
 
-    console.log("AI Search - Original Query:", query);
-    console.log("AI Search - AI Suggestion:", suggestion);
-
     if (!suggestion) {
-      console.log("AI Search - No suggestion returned");
       return NextResponse.json({ results: [] });
     }
 
     const tmdbRes = await fetchTmdbData(
       `/search/multi?query=${encodeURIComponent(suggestion)}`
     );
-
-    console.log("result", tmdbRes);
 
     return NextResponse.json({ results: tmdbRes });
   } catch (err) {
