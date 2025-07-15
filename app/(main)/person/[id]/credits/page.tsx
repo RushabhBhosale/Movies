@@ -1,11 +1,7 @@
 import { fetchTmdbData } from "@/hooks/useTmdb";
 import CreditsClient from "./CreditsClient";
 
-export default async function CreditsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function CreditsPage({ params }: { params: any }) {
   const actorId = params.id;
 
   const person = await fetchTmdbData(`/person/${actorId}`);
