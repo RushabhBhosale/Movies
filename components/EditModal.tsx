@@ -152,7 +152,7 @@ const EditModal = ({ movie, onSave }: { movie: any; onSave?: () => void }) => {
         mediaId: String(item.id),
         type: movie.type,
         review,
-        rating: rating / 2,
+        rating: rating,
       });
     } catch (err) {
       console.error("Review API error", err);

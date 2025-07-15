@@ -4,48 +4,45 @@ import { fetchTmdbData } from "@/hooks/useTmdb";
 import { getUserFromToken } from "@/lib/getUserFromToken";
 import axios from "axios";
 import { fetchTmdbGenres } from "@/hooks/useTmdbGenres";
+import { time } from "@/utils/time";
 
 const HomePage = async () => {
-  const user: any = await getUserFromToken();
-  const [trendingRes, upcoming, popular] = await Promise.all([
-    fetchTmdbData("/trending/all/day"),
-    fetchTmdbData("/movie/upcoming"),
-    fetchTmdbData("/movie/popular"),
-  ]);
+  const user = await time("getUserFromToken", () => getUserFromToken());
 
-  const genres = await fetchTmdbGenres();
-
-  const trending = (trendingRes || []).filter(
-    (item: any) => item.media_type !== "person"
+  const [trendingRes, upcoming, popular] = await time(
+    "fetchTmdbData (trending, upcoming, popular)",
+    () =>
+      Promise.all([
+        fetchTmdbData("/trending/all/day"),
+        fetchTmdbData("/movie/upcoming"),
+        fetchTmdbData("/movie/popular"),
+      ])
   );
 
-  const watchlist = await getWatchlist(user._id);
-
-  const res = await axios.get(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/user/stats?userId=${user._id}`
-  );
+  const genres = await time("fetchTmdbGenres", () => fetchTmdbGenres());
+  const watchlist = await time("getWatchlist", () => getWatchlist(user._id));
 
   let recRes;
   let latest;
   const completed: any = watchlist.filter((m: any) => m.status === "Completed");
-  if (completed.length > 0 && completed[0]?.details?.id && completed[0]?.type) {
-    recRes = await fetchTmdbData(
-      `/${completed[0].type}/${completed[0].details.id}/recommendations`
+
+  if (completed[0]?.details?.id && completed[0]?.type) {
+    recRes = await time("fetchTmdbData (recommendations)", () =>
+      fetchTmdbData(
+        `/${completed[0].type}/${completed[0].details.id}/recommendations`
+      )
     );
     latest = completed[0];
-  } else {
-    console.warn("⛔ No valid completed items found for recommendations");
   }
 
   return (
     <Home
       latest={latest}
       recs={recRes}
-      trending={trending}
+      trending={trendingRes.filter((i: any) => i.media_type !== "person")}
       upcoming={upcoming}
       popular={popular}
       watchlist={watchlist}
-      stats={res.data.data}
       user={user}
       genres={genres}
     />

@@ -18,11 +18,24 @@ export const STATUSES = [
 ];
 
 export const SORTOPTIONS = [
-  { value: "dateAdded", label: "Date Added" },
+  { value: "dateAdded", label: "Date" },
   { value: "rating", label: "Rating" },
   { value: "title", label: "Title" },
   { value: "year", label: "Year" },
 ];
+
+export const LANGUAGEMAP: Record<string, string> = {
+  en: "English",
+  hi: "Hindi",
+  ja: "Japanese",
+  es: "Spanish",
+  ko: "Korean",
+  fr: "French",
+  de: "German",
+  zh: "Chinese",
+  it: "Italian",
+  ru: "Russian",
+};
 
 export const NAVITEMS = [
   {

@@ -2,8 +2,10 @@
 import Carousel from "@/components/Carousel";
 import MovieCard from "@/components/MovieCard";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MTV } from "@/types/tmdb";
 import { imageBaseUrl } from "@/utils/options";
+import axios from "axios";
 import {
   CheckCheck,
   Clock,
@@ -22,7 +24,6 @@ interface HomeProps {
   upcoming: MTV[];
   popular: MTV[];
   watchlist: any;
-  stats: any;
   user: any;
   genres: any;
   recs: any;
@@ -34,20 +35,34 @@ export default function Home({
   upcoming,
   popular,
   watchlist,
-  stats,
   user,
   genres,
   recs,
   latest,
 }: HomeProps) {
   const [watching, setWatching] = useState<any>([]);
-  const stat = stats.stats;
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetchStats();
+  }, [user.id]);
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`/api/user/stats?userId=${user._id}`);
+      setStats(res.data.data);
+      console.log("dhjs", res.data);
+    } catch (err) {
+      console.error("Failed to fetch stats", err);
+    }
+  };
+
   const statsData = [
     {
       icon: <Clock className="w-4 h-4 md:w-5 md:h-5" />,
       label: "Hours",
       fullLabel: "Total Hours",
-      value: stats.totalHoursWatched,
+      value: stats?.totalHoursWatched,
       color: "bg-blue-500/10 text-blue-300 border-blue-500/20",
       gradient: "from-blue-500/20 to-blue-600/5",
     },
@@ -55,7 +70,7 @@ export default function Home({
       icon: <Star className="w-4 h-4 md:w-5 md:h-5" />,
       label: "Avg",
       fullLabel: "Avg Rating",
-      value: stats.avgRating,
+      value: stats?.avgRating,
       color: "bg-purple-500/10 text-purple-300 border-purple-500/20",
       gradient: "from-purple-500/20 to-purple-600/5",
     },
@@ -63,7 +78,7 @@ export default function Home({
       icon: <Play className="w-4 h-4 md:w-5 md:h-5" />,
       label: "Watching",
       fullLabel: "Currently Watching",
-      value: stat.watching,
+      value: stats?.stats?.watching,
       color: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
       gradient: "from-indigo-500/20 to-indigo-600/5",
     },
@@ -71,7 +86,7 @@ export default function Home({
       icon: <CheckCheck className="w-4 h-4 md:w-5 md:h-5" />,
       label: "Done",
       fullLabel: "Completed",
-      value: stat.completed,
+      value: stats?.stats?.completed,
       color: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
       gradient: "from-emerald-500/20 to-emerald-600/5",
     },
@@ -79,7 +94,7 @@ export default function Home({
       icon: <Pause className="w-4 h-4 md:w-5 md:h-5" />,
       label: "Hold",
       fullLabel: "On Hold",
-      value: stat.onHold,
+      value: stats?.stats?.onHold,
       color: "bg-amber-500/10 text-amber-300 border-amber-500/20",
       gradient: "from-amber-500/20 to-amber-600/5",
     },
@@ -87,7 +102,7 @@ export default function Home({
       icon: <XCircleIcon className="w-4 h-4 md:w-5 md:h-5" />,
       label: "Dropped",
       fullLabel: "Dropped",
-      value: stat.dropped,
+      value: stats?.stats?.dropped,
       color: "bg-rose-500/10 text-rose-300 border-rose-500/20",
       gradient: "from-rose-500/20 to-rose-600/5",
     },
@@ -114,18 +129,24 @@ export default function Home({
               Continue your entertainment journey
             </p>
           </div>
-          <div className="hidden md:block">
-            <div className="flex items-center gap-2 bg-zinc-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-zinc-700/50">
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm text-zinc-300">
-                {stats.totalHoursWatched}h watched this month
-              </span>
+          {stats?.totalHoursWatched > 1 ? (
+            <div className="hidden md:block">
+              <div className="flex items-center gap-2 bg-zinc-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-zinc-700/50">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm text-zinc-300">
+                  {stats?.totalHoursWatched}h watched this month
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="hidden md:block">
+              <Skeleton className="h-10 w-64 bg-zinc-800 rounded-full" />
+            </div>
+          )}
         </div>
       </div>
 
-      {stats.totalHoursWatched > 1 && (
+      {stats?.totalHoursWatched > 1 ? (
         <>
           <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-6 gap-4 mb-3">
             {statsData?.map((item, i) => (
@@ -168,6 +189,20 @@ export default function Home({
             </div>
           </div>
         </>
+      ) : (
+        <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-6 gap-4 mb-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-xl border bg-zinc-800/50 p-3">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-5 bg-zinc-700" />
+                  <Skeleton className="h-5 w-16 bg-zinc-700" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-24 bg-zinc-700" />
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="flex gap-3">

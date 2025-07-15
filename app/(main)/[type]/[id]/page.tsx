@@ -49,7 +49,7 @@ export default async function DetailsPage({ params }: PageProps) {
   const credits = movie.credits;
   const videos = movie.videos.results;
   const reviews = movie.reviews.results;
-  const userReview = await getUserReview(user._id);
+  const userReview = await getUserReview(user._id, id);
   const recommendations = movie.recommendations.results;
 
   let collection = null;

@@ -169,7 +169,7 @@ const Watchlist = ({ initialData }: any) => {
                 <TabsTrigger
                   key={status.id}
                   value={status.name}
-                  onClick={() => setActiveTab(status.name)} // Fixed to update activeTab correctly
+                  onClick={() => setActiveTab(status.name)}
                   className={`text-sm px-4 py-3 whitespace-nowrap rounded-md ${
                     activeTab === status.name
                       ? "bg-zinc-600"
@@ -266,69 +266,79 @@ const Watchlist = ({ initialData }: any) => {
         </div>
       </div>
 
-      <div className="md:hidden mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-zinc-900 text-white pl-10 pr-4 py-2 rounded-lg w-full border border-zinc-700 focus:outline-none focus:border-zinc-500"
-            placeholder="Search by title..."
-          />
-        </div>
-      </div>
-
-      <div className="md:hidden mb-4">
-        <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setShowSortDropdown(!showSortDropdown)}
-            className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-colors w-full"
-          >
-            <ArrowUpDown size={16} />
-            <span className="text-sm">
-              Sort by {SORTOPTIONS.find((opt) => opt.value === sortBy)?.label}
-            </span>
-            <ChevronDown
+      <div className="flex items-center justify-between">
+        <div className="md:hidden mb-4">
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-2.5 text-gray-400"
               size={16}
-              className={`ml-auto transition-transform ${
-                showSortDropdown ? "rotate-180" : ""
-              }`}
             />
-          </button>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-zinc-900 text-white pl-10 pr-4 py-2 rounded-lg w-full border border-zinc-700 focus:outline-none focus:border-zinc-500"
+              placeholder="Search by title..."
+            />
+          </div>
+        </div>
 
-          {showSortDropdown && (
-            <div className="absolute z-[9999] top-full mt-2 left-0 right-0 bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl overflow-hidden">
-              <div className="py-1">
-                {SORTOPTIONS.map((option) => (
+        <div className="md:hidden mb-4">
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="flex items-center gap-2 bg-zinc-800 text-white px-4 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-colors w-full"
+            >
+              <ArrowUpDown size={16} />
+              {isMobile ? (
+                <span>Sort</span>
+              ) : (
+                <span className="text-sm">
+                  Sort by{" "}
+                  {SORTOPTIONS.find((opt) => opt.value === sortBy)?.label}
+                </span>
+              )}
+              <ChevronDown
+                size={16}
+                className={`ml-auto transition-transform ${
+                  showSortDropdown ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {showSortDropdown && (
+              <div className="absolute z-[9999] top-full mt-2 left-0 right-0 bg-zinc-800 border border-zinc-700 rounded-lg shadow-2xl overflow-hidden">
+                <div className="py-1">
+                  {SORTOPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setSortBy(option.value);
+                        setShowSortDropdown(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors ${
+                        sortBy === option.value
+                          ? "bg-zinc-700 text-white"
+                          : "text-gray-300"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                  <div className="border-t border-zinc-700 my-1" />
                   <button
-                    key={option.value}
                     onClick={() => {
-                      setSortBy(option.value);
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors ${
-                      sortBy === option.value
-                        ? "bg-zinc-700 text-white"
-                        : "text-gray-300"
-                    }`}
+                    className="w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors text-gray-300"
                   >
-                    {option.label}
+                    {sortOrder === "asc" ? "↑ Asc" : "↓ Desc"}
                   </button>
-                ))}
-                <div className="border-t border-zinc-700 my-1" />
-                <button
-                  onClick={() => {
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                    setShowSortDropdown(false);
-                  }}
-                  className="w-full px-4 py-2 text-left hover:bg-zinc-700 transition-colors text-gray-300"
-                >
-                  {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
-                </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -475,35 +485,47 @@ const Watchlist = ({ initialData }: any) => {
               return (
                 <div
                   key={movie?._id}
-                  className="flex gap-3 my-4 p-4 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors cursor-pointer"
+                  className="flex gap-3 my-4 p-4 bg-zinc-800 rounded-lg cursor-pointer"
                 >
-                  <div className="flex-shrink-0">
-                    <img
-                      src={`https://image.tmdb.org/t/p/w92${movie?.details.poster_path}`}
-                      alt="poster"
-                      className="w-16 h-24 rounded-md object-cover"
-                    />
-                  </div>
+                  <Link
+                    href={`/${movie?.details.title ? "movie" : "tv"}/${
+                      movie?.details.id
+                    }`}
+                  >
+                    <div className="flex-shrink-0">
+                      <img
+                        src={`https://image.tmdb.org/t/p/w92${movie?.details.poster_path}`}
+                        alt="poster"
+                        className="w-16 h-24 rounded-md object-cover"
+                      />
+                    </div>
+                  </Link>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 min-w-0 pr-2">
-                          <h3 className="font-medium text-white text-sm leading-tight mb-1">
-                            {movie?.details.title || movie?.details.name}
-                          </h3>
-                          <p className="text-xs text-gray-400">
-                            {isTV ? "TV" : "Movie"},{" "}
-                            {movie?.details.release_date?.slice(0, 4) ||
-                              movie?.details.first_air_date?.slice(0, 4) ||
-                              "N/A"}
-                          </p>
+                      <Link
+                        href={`/${movie?.details.title ? "movie" : "tv"}/${
+                          movie?.details.id
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0 pr-2">
+                            <h3 className="font-medium text-white text-sm leading-tight mb-1">
+                              {movie?.details.title || movie?.details.name}
+                            </h3>
+                            <p className="text-xs text-gray-400">
+                              {isTV ? "TV" : "Movie"},{" "}
+                              {movie?.details.release_date?.slice(0, 4) ||
+                                movie?.details.first_air_date?.slice(0, 4) ||
+                                "N/A"}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                       <div>
                         <div className="w-full bg-zinc-700 rounded-full h-2 mb-2">
                           <div
-                            className="bg-blue-400 h-2 rounded-full transition-all duration-300"
+                            className="bg-accent-foreground h-2 rounded-full transition-all duration-300"
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>

@@ -1,4 +1,3 @@
-// SERVER-ONLY LAYOUT WRAPPER
 import ProtectedLayoutUI from "./ServerLayout";
 
 export default async function Layout({
